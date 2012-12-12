@@ -1,0 +1,86 @@
+@import 'grid.less';
+@import 'colors.less';
+
+@mainHeight: 800px;
+@normalFont: Lucida Sans Unicode, sans-serif;
+@fixedFont: Lucida Console, Consolas, monospace;
+
+body {
+	background-color: @background;
+	color: @foreground;
+	padding: 2em;
+	.row();
+	margin: 0 auto;
+	font-family: @normalFont;
+	font-size: 8pt;
+}
+
+button, input, select {
+	color: @complement-active-fg;
+	background-color: @complement-active-bg;
+	border: 1px solid @complement-border;
+	border-radius: 3px;
+	font-family: @normalFont;
+	font-size: 80%;
+
+	&[disabled] {
+		background-color: @complement-inactive-bg;
+		color: @complement-inactive-fg;
+	}
+}
+
+button {
+	border: 1px outset @complement-border;
+	&:active {
+		border: 1px inset @complement-border;
+	}
+}
+
+div {
+	box-sizing: border-box;
+}
+
+#filePanel {
+	.column(2);
+	padding: @gutter-width/2;
+	border: 1px solid @secondary-a-border;
+	background-color: @secondary-a-active-bg;
+	margin-bottom: @gutter-width;
+	height: @mainHeight;
+	position: relative;
+
+	.controls {
+		position: absolute;
+		bottom: 0;
+
+		label {
+			margin: 0.2em;
+			display: block;
+		}
+	}
+}
+
+#workPanel {
+	.column(8);
+	padding: @gutter-width/2;
+	border: 1px solid @primary-border;
+	background-color: @primary-active-bg;
+	height: @mainHeight;
+}
+
+#componentPanel {
+	.column(2);
+	padding: @gutter-width/2;
+	border: 1px solid @secondary-a-border;
+	background-color: @secondary-a-active-bg;
+	height: @mainHeight;
+}
+
+#optionPanel {
+	.column(12);
+	padding: @gutter-width/2;
+	border: 1px solid @secondary-b-border;
+	background-color: @secondary-b-active-bg;
+	height: 200px;
+}
+

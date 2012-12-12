@@ -5,8 +5,6 @@
 		<script type="text/javascript" src="js/lib/jquery.min.js"></script>
 		<script type="text/javascript" src="js/lib/jquery-ui.min.js"></script>
 		<script type="text/javascript" src="js/lib/jquery.jsPlumb-1.3.16-all-min.js"></script>
-		<script type="text/javascript" src="js/lib/knockout-min.js"></script>
-		<script type="text/javascript" src="js/lib/underscore.min.js"></script>
 
 		<link rel="stylesheet/less" type="text/css" href="less/main.less" />
 		<script type="text/javascript" src="js/lib/less.min.js"></script>
@@ -16,6 +14,30 @@
 	</head>
 
 	<body>
-		hi
+		<div id="filePanel">
+
+			<div class="controls">
+				<button data-bind="click: compose(selectFiles, addFiles)">Add Files</button>
+				<button data-bind="click: compose(deleteFile, selectedFile), enabled: selectedFile">Delete</button>
+				<button data-bind="click: compose(downloadFile, selectedFile), enabled: selectedFile">Download</button>
+
+				<label>Filter:
+					<select id="fileFilter" data-bind="value: fileFilter">
+						<option>none</option>
+						<option>ciphertext</option>
+						<option>plaintext</option>
+					</select>
+				</label>	
+			</div>
+		</div>
+
+		<div id="workPanel">
+		</div>
+
+		<div id="componentPanel">
+		</div>
+
+		<div id="optionPanel">
+		</div>
 	</body>
 </html>
