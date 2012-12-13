@@ -1,7 +1,7 @@
 @import 'grid.less';
 @import 'colors.less';
 
-@mainHeight: 800px;
+@mainHeight: 680px;
 @normalFont: Lucida Sans Unicode, sans-serif;
 @fixedFont: Lucida Console, Consolas, monospace;
 
@@ -15,23 +15,26 @@ body {
 	font-size: 8pt;
 }
 
-button, input, select {
-	color: @complement-active-fg;
-	background-color: @complement-active-bg;
+button, input, select, a.button {
+	// use inactive for enabled, because disabled form elements are lightened instead of darkened
+	color: @complement-inactive-fg;
+	background-color: @complement-inactive-bg;
 	border: 1px solid @complement-border;
 	border-radius: 3px;
 	font-family: @normalFont;
 	font-size: 80%;
 
 	&[disabled] {
-		background-color: @complement-inactive-bg;
-		color: @complement-inactive-fg;
+		background-color: @complement-active-bg;
+		color: @complement-active-fg;
 	}
 }
 
-button {
+button, a.button {
 	border: 1px outset @complement-border;
-	&:active {
+	padding: 1px 6px;
+	text-decoration: none;
+	&:not([disabled]):active {
 		border: 1px inset @complement-border;
 	}
 }
@@ -53,9 +56,31 @@ div {
 		position: absolute;
 		bottom: 0;
 
+		background-color: @secondary-a-active-bg;
+
 		label {
 			margin: 0.2em;
 			display: block;
+		}
+	}
+
+	#fileTable {
+		font-size: 80%;
+		width: 100%;
+		height: 100%;
+		tbody {
+			display: block;
+			height: 100%;
+			overflow-y: auto;
+			padding-bottom: 6em; // HACK: make space for controls to sit on top of us
+
+			tr {
+				display: block;
+				&.selected {
+					background-color: @secondary-a-active-fg;
+					color: @secondary-a-active-bg;
+				}
+			}
 		}
 	}
 }
@@ -81,6 +106,6 @@ div {
 	padding: @gutter-width/2;
 	border: 1px solid @secondary-b-border;
 	background-color: @secondary-b-active-bg;
-	height: 200px;
+	height: 150px;
 }
 
