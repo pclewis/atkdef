@@ -21,8 +21,8 @@
 		<div id="filePanel">
 
 			<table id="fileTable">
-				<tbody data-bind="foreach: files">
-					<tr data-bind="css: {selected: $root.selectedFile() === $data}, click: function() { $root.selectedFile($data); }">
+				<tbody data-bind="foreach: files, attr: { 'data-filter': fileFilter }">
+					<tr data-bind="css: {selected: $root.selectedFile() === $data, plainText: isPlainText(), cipherText: isCipherText()}, click: function() { $root.selectedFile($data) }">
 						<td data-bind="text: name"></td>
 					</tr>
 				</tbody>
@@ -36,8 +36,8 @@
 				<label>Filter:
 					<select id="fileFilter" data-bind="value: fileFilter">
 						<option>none</option>
-						<option>ciphertext</option>
-						<option>plaintext</option>
+						<option value="CipherText">ciphertext</option>
+						<option value="PlainText">plaintext</option>
 					</select>
 				</label>	
 			</div>

@@ -74,6 +74,10 @@ div {
 			overflow-y: auto;
 			padding-bottom: 6em; // HACK: make space for controls to sit on top of us
 
+			&[data-filter] tr { display: none; }
+			&[data-filter='CipherText'] tr.cipherText { display: block; }
+			&[data-filter='PlainText'] tr.plainText { display: block; }
+
 			tr {
 				display: block;
 				&.selected {

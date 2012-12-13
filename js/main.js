@@ -40,17 +40,60 @@ ko.extenders.deferred = function(target, fn) {
 	return actual;
 };
 
+var File = function(viewModel, fileEntry) {
+	var self = this;
+
+	self.name         = ko.observable(fileEntry.name);
+	self.fileEntry    = ko.observable(fileEntry);
+
+	this.isPlainText  = ko.computed(function(){  return viewModel.fileNameRegexPlainText().test(self.name())   });
+	this.isCipherText = ko.computed(function(){  return viewModel.fileNameRegexCipherText().test(self.name())  });
+
+	this.fileType     = ko.computed(function() {
+		if(self.isPlainText())  return FileType.PLAINTEXT;
+		if(self.isCipherText()) return FileType.CIPHERTEXT;
+		return FileType.UNKNOWN;
+	});
+
+	this.baseName     = ko.computed(function() {
+		var r = viewModel.fileNameRegexPlainText().exec(self.name()) || viewModel.fileNameRegexCipherText().exec(self.name());
+		return r ? r[1] : self.name();
+	});
+
+};
+
+var FileType = {
+	PLAINTEXT: 'PlainText',
+	CIPHERTEXT: 'CipherText',
+	UNKNOWN: 'Unknown',
+	invert: function(t) {
+		switch(t) {
+			case FileType.PLAINTEXT:  return FileType.CIPHERTEXT;
+			case FileType.CIPHERTEXT: return FileType.PLAINTEXT;
+			default: return t;
+		}
+	}
+};
+
 var ViewModel = function() {
 	var self = this;
 
 	this.fileSystem   = ko.observable();
 	this.selectedFile = ko.observable(); // File  // idea: .contract extender to enforce types/etc...
 	this.files        = ko.observableArray();
+	this.fileFilter   = ko.observable();
+
+	this.fileNameRegexCipherText = ko.observable( /^(.*)\.dat$/i );
+	this.fileNameRegexPlainText  = ko.observable( /^(.*)\.(bin|dat)\.mp3$/i );
 
 
 	this.fileSystem.subscribe( function(fileSystem){
 		self.files.removeAll();
-		fileSystem.root.createReader().readEntries(function(a){ self.files.push.apply(self.files, a);  });
+		fileSystem.root.createReader().readEntries(function(entries){
+			self.files.push.apply(self.files,
+				_(entries).map(function(e){  return new File(self, e)  })
+			);
+		});
 	});
 
 };
