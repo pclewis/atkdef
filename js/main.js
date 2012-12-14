@@ -1,3 +1,4 @@
+/*jshint lastsemic: true, laxcomma: true, smarttabs: true */
 function fileSystemError(e) {
 	var msg = '';
 
@@ -20,7 +21,7 @@ function fileSystemError(e) {
 		default:
 		msg = 'Unknown Error';
 		break;
-	};
+	}
 
 	log.error('FileSystem Error: ' + msg);
 	throw e;
@@ -113,7 +114,7 @@ var ViewModel = function() {
 /* Shortcut */
 ViewModel.prototype._deferred = function(obs, fn) {
 	return ko.computed(obs, this).extend( {deferred: fn} );
-}
+};
 
 /**
  * Show a multi-file selection dialog box.
@@ -150,18 +151,18 @@ ViewModel.prototype.addFiles = function(files) {
 	log.info("In addFiles");
 
 	// TODO: ask to overwrite?
-	return $.when( 
+	return $.when(
 		_.map(files, function(file) {
 			console.log("Creating " + file.name);
 			return $.Deferred( function(d) {
 						self.fileSystem().root.getFile(file.name, {create: true, exclusive: true}, d.resolve, d.reject);
 					}).pipe( function(fe) {
-					 	return $.Deferred(function(d) {
-					 		fe.createWriter(d.resolve, d.reject);
-					 	});
+						return $.Deferred(function(d) {
+							fe.createWriter(d.resolve, d.reject);
+						});
 					}).done( function(fw) {
 						fw.write(file);
-				 		self.fileSystem().root.getFile( file.name, {}, function(f){  self.files.push(new File(self, f))  });
+						self.fileSystem().root.getFile( file.name, {}, function(f){  self.files.push(new File(self, f))  });
 					}).fail( fileSystemError );
 		})
 	);
@@ -177,7 +178,7 @@ ViewModel.prototype.deleteFile = function(file) {
 		file.fileEntry().remove( function() {
 			log.info("Deleted file " + file.name());
 			self.files.remove(file);
-		}, fileSystemError)
+		}, fileSystemError);
 	}
 };
 
@@ -204,12 +205,12 @@ ViewModel.prototype.compose = function() {
 	return function() {
 		var start = new $.Deferred()
 		  , composed = _.reduceRight( fns, function(d, f) {
-				return d.pipe(function() { return $.when( f.apply(self, arguments) ); })
+				return d.pipe(function(){  return $.when( f.apply(self, arguments) )  });
 			}, start );
 		start.resolve();
 		return composed;
-	}
-}
+	};
+};
 
 var viewModel;
 window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
@@ -237,7 +238,7 @@ var InputType = { SINGLE: {} };
 var OutputType = { SINGLE: {} };
 
 var Component = function(def) {
-	var newComponent = function() {}
+	var newComponent = function() {};
 	_.extend( newComponent.prototype, Component.prototype, def );
 	return newComponent;
 };
@@ -264,7 +265,7 @@ _.extend( Component.prototype,
 			self._options = {};
 			_.each(self.options, function(properties, name) {
 				self._options[name] = ko.observable();
-				viewModel.componentOptions.push([name, self._options[name]])
+				viewModel.componentOptions.push([name, self._options[name]]);
 			});
 
 			_.each(self.outputs, function(properties, name) {
@@ -272,7 +273,7 @@ _.extend( Component.prototype,
 				self.outpins[name] = ko.computed({
 					read: _.bind(self._callOutputFn, self, fn)
 				});
-			})
+			});
 		}
 
 	,	connect: function(outputName, target, inputName) { var self = this;
@@ -291,7 +292,7 @@ _.extend( Component.prototype,
 		}
 
 	,	readOption: function(name) { var self = this;
-			return self._options[name]();	
+			return self._options[name]();
 		}
 
 	,	_callOutputFn: function(fn) {var self = this;
@@ -429,7 +430,7 @@ jsPlumb.importDefaults({
 	Endpoint : ["Dot", {radius:6}],
 	PaintStyle : { lineWidth: 2, strokeStyle: '#00ccff' },
 	ConnectionOverlays : [
-		[ "Arrow", { 
+		[ "Arrow", {
 			location:1,
 			id:"arrow",
 			length:12,
@@ -458,7 +459,7 @@ ko.bindingHandlers.component = {
 		var component = viewModel;
 		jsPlumb.draggable( $(element), { containment: 'parent' } );
 
-		component.init()
+		component.init();
 		$(element).data('component', component);
 
 		_.defer(function() {
@@ -480,4 +481,4 @@ ko.bindingHandlers.component = {
 			});
 		});
 	}
-}
+};
