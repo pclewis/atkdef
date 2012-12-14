@@ -5,6 +5,16 @@
 @normalFont: Lucida Sans Unicode, sans-serif;
 @fixedFont: Lucida Console, Consolas, monospace;
 
+.noSelect() {
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+
+  /* No support for these yet, use at own risk */
+  -o-user-select: none;
+  user-select: none;     
+}
+
 body {
 	background-color: @background;
 	color: @foreground;
@@ -84,6 +94,9 @@ div {
 					background-color: @secondary-a-active-fg;
 					color: @secondary-a-active-bg;
 				}
+				td {
+					.noSelect();
+				}
 			}
 		}
 	}
@@ -95,6 +108,7 @@ div {
 	border: 1px solid @primary-border;
 	background-color: @primary-active-bg;
 	height: @mainHeight;
+	position: relative;
 }
 
 #componentPanel {
@@ -113,3 +127,41 @@ div {
 	height: 150px;
 }
 
+
+
+.component {
+	position: absolute;
+	width: 50px;
+	height: 50px;
+	font-size: 80%;
+	border: 1px solid @complement-border;
+	background-color: @complement-active-bg;
+	color: @complement-active-fg;
+	.noSelect();
+	span.name {
+		word-wrap: break-word;
+		margin: 2px;
+		display: block;
+	}
+	.inputs, .outputs {
+		margin: 0;
+		padding: 0;
+		display: inline-block;
+		list-style-type: none;
+		position: absolute;
+		top: 0;
+		color: @secondary-b-active-fg;
+		li {
+			background-color: @secondary-b-border;
+			border-radius: 3px;
+			margin: 2px 0;
+			padding: 0px 4px 2px;
+		}
+	}
+	.inputs { right: 100%; text-align: right; }
+	.outputs { left: 100%; }
+}
+
+._jsPlumb_endpoint, ._jsPlumb_connector {
+	opacity: 0.5;
+}

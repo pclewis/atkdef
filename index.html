@@ -32,6 +32,7 @@
 				<button data-bind="click: compose(addFiles, selectFiles)">Add Files</button>
 				<button data-bind="click: compose(deleteFile, selectedFile), enable: selectedFile">Delete</button>
 				<a class="button" data-bind="attr: { href: _.result(selectedFile(), 'toURL'), download: _.result(selectedFile(), 'name'), disabled: !selectedFile()}">Download</a>
+				<button data-bind="click: compose(addFileComponent, selectedFile), enable: selectedFile">Add Component</button>
 
 				<label>Filter:
 					<select id="fileFilter" data-bind="value: fileFilter">
@@ -44,12 +45,29 @@
 		</div>
 
 		<div id="workPanel">
+			<!-- ko foreach: components -->
+				<div class="component" data-bind="component: $data">
+					<span class="name" data-bind="text:name"></span>
+					<ul class="inputs" data-bind="foreach: _.keys(inputs)">
+						<li data-bind="text: $data"></li>
+					</ul>
+					<ul class="outputs" data-bind="foreach: _.keys(outputs)">
+						<li data-bind="text: $data"></li>
+					</ul>
+				</div>
+			<!-- /ko -->
 		</div>
 
 		<div id="componentPanel">
+			<!-- ko foreach: window.components -->
+				<button data-bind="text: $data.prototype.name, click: function() { $root.addComponent($data) }"></button>
+			<!-- /ko -->
 		</div>
 
 		<div id="optionPanel">
+			<!-- ko foreach: componentOptions -->
+				<label><span data-bind="text: $data[0]"></span> <input type="text" data-bind="value: $data[1]" /></label>
+			<!-- /ko -->
 		</div>
 	</body>
 </html>

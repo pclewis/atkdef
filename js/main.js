@@ -62,6 +62,12 @@ var File = function(viewModel, fileEntry) {
 
 };
 
+File.prototype.read = function(cb) {
+	var reader = new FileReader();
+	reader.onloadend = function() { cb(this.result) };
+	this.fileEntry().file(function(file){  reader.readAsBinaryString(file)  });
+};
+
 var FileType = {
 	PLAINTEXT: 'PlainText',
 	CIPHERTEXT: 'CipherText',
@@ -82,6 +88,8 @@ var ViewModel = function() {
 	this.selectedFile = ko.observable(); // File  // idea: .contract extender to enforce types/etc...
 	this.files        = ko.observableArray();
 	this.fileFilter   = ko.observable();
+	this.components   = ko.observableArray();
+	this.componentOptions = ko.observableArray();
 
 	this.fileNameRegexCipherText = ko.observable( /^(.*)\.dat$/i );
 	this.fileNameRegexPlainText  = ko.observable( /^(.*)\.(bin|dat)\.mp3$/i );
@@ -169,6 +177,15 @@ ViewModel.prototype.deleteFile = function(fileEntry) {
 	}
 };
 
+
+ViewModel.prototype.addComponent = function(component) {
+	this.components.push( new component() );
+};
+
+ViewModel.prototype.addFileComponent = function(file) {
+	this.components.push( new FileComponent(file) );
+};
+
 /**
  * Compose potentially Deferred method calls on the ViewModel.
  * compose( f, g, x ) returns a function which returns a Deferred which will pass the result of f(g(x)) when finished.
@@ -210,3 +227,253 @@ $.Deferred(function(d){
 });
 
 
+
+
+var InputType = { SINGLE: {} };
+var OutputType = { SINGLE: {} };
+
+var Component = function(def) {
+	var newComponent = function() {}
+	_.extend( newComponent.prototype, Component.prototype, def );
+	return newComponent;
+};
+
+_.extend( Component.prototype,
+	{	nullo: ko.observable()
+
+	,	MissingInput: {}
+
+	,	init: function() { var self = this;
+
+			self.inpins  = {};
+			self.outpins = {};
+
+			_.each(self.inputs, function(properties, name) {
+				// do something with type eventually...
+				self.inpins[name] = ko.observable(self.nullo);
+			});
+
+			if(self.setup) {
+				self.setup();
+			}
+
+			self._options = {};
+			_.each(self.options, function(properties, name) {
+				self._options[name] = ko.observable();
+				viewModel.componentOptions.push([name, self._options[name]])
+			});
+
+			_.each(self.outputs, function(properties, name) {
+				var fn = _.isFunction(properties) ? properties : properties.fn;
+				self.outpins[name] = ko.computed({
+					read: _.bind(self._callOutputFn, self, fn)
+				});
+			})
+		}
+
+	,	connect: function(outputName, target, inputName) { var self = this;
+			target.inpins[inputName]( this.outpins[outputName] );
+			if(this.onConnection) this.onConnection(outputName, target, inputName);
+		}
+
+	,	disconnect: function(outputName, target, inputName) { var self = this;
+			target.inpins[inputName]( this.nullo );
+		}
+
+	,	readInput: function(name, noThrow) { var self = this;
+			var result = self.inpins[name]()();
+			if(result === undefined && !noThrow) throw self.MissingInput;
+			return result;
+		}
+
+	,	readOption: function(name) { var self = this;
+			return self._options[name]();	
+		}
+
+	,	_callOutputFn: function(fn) {var self = this;
+			try {
+				return fn.apply(self, this.inpins);
+			} catch(err) {
+				console.log("caught", err);
+				if(err === self.MissingInput) return undefined;
+				throw err;
+			}
+		}
+
+	, inputs: []
+	, outputs: []
+});
+
+var FileComponent = function(file) {
+	var self = this;
+
+	self.name = file.name();
+	self.file = file;
+	self.data = ko.observable();
+	self.file.read( function(data) {
+		self.data(data);
+	});
+
+};
+
+_.extend( FileComponent.prototype, Component.prototype,
+	{	name: 'file'
+	,	inputs: {}
+	,	outputs: { 'data': function(){  return this.data()  }}
+	}
+);
+
+components =
+	[ new Component(
+		{	name: 'Swap Bytes'
+		,	description: 'Swap every pair of bytes. Ex: abcd -> badc'
+		,	inputs: {'in': {}}
+		,	outputs:
+			{	'out':
+				{	fn: function(inputs) {
+						var bytes = this.readInput('in'), out = '';
+						if(!bytes) return undefined;
+
+						for(var i = 0; i < bytes.length; i += 2) {
+							if(i+1 < bytes.length) out += bytes[i+1];
+							out += bytes[i];
+						}
+
+						return out;
+					}
+				}
+			}
+		}
+	)
+
+	, new Component(
+		{	name: 'Count Bits'
+		,	description: 'Count the number of total, set, and unset bits.'
+		,	inputs: {'in': {}}
+		,	outputs:
+			{	'total': function(){  return this.info().total  }
+			,	'set':   function(){  return this.info().set    }
+			,   'unset': function(){  return this.info().unset  }
+			}
+		,	setup: function() {
+				this.info = ko.computed( {read: _.bind(this.calculate, this)} );
+			}
+		,	count: function(n) {
+				n >>>= 0; // force uint32
+				for(var pc = 0; n; n &= n - 1) ++pc;
+				return pc;
+			}
+		,	calculate: function() {
+				var bytes = this.readInput('in', true), total = 0, set = 0;
+				if(!bytes) return {total: undefined, set: undefined, unset: undefined};
+				for(var i =0; i < bytes.length; ++i) {
+					total += 8;
+					set += this.count(bytes.charCodeAt(i));
+				}
+
+				return { total: total, set: set, unset: total-set };
+			}
+		}
+	)
+
+
+	, new Component(
+		{	name: 'Static Text'
+		,	description: 'Always output static text'
+		,	inputs: {}
+		,	outputs: {'out': function() { return this.readOption('text') }}
+		,	options: {'text': {}}
+		}
+	)
+
+	, new Component(
+		{	name: 'Log To Console'
+		,	description: 'Log input to console'
+		,	inputs: {'in': {}}
+		,	outputs: {}
+		,	setup: function() {
+				var self = this;
+				this.inpins['in'].subscribe(function(obs) {
+					if(self.subscription) self.subscription.dispose();
+					self.subscription = obs.subscribe(self.log);
+					self.log( obs() );
+				});
+			}
+		,	log: function(data) {
+				if(data !== undefined) log.info(data);
+			}
+		}
+	)
+
+	, new Component(
+		{	name: 'Tee'
+		,	description: 'Duplicate input to multiple outputs'
+		,	inputs: {'in': {}}
+		,	outputs:
+			{ 'out1': function(){ return this.readInput('in') }
+			, 'out2': function(){ return this.readInput('in') }
+			, 'out3': function(){ return this.readInput('in') }
+			}
+		}
+	)
+];
+
+
+
+
+jsPlumb.importDefaults({
+	Endpoint : ["Dot", {radius:6}],
+	PaintStyle : { lineWidth: 2, strokeStyle: '#00ccff' },
+	ConnectionOverlays : [
+		[ "Arrow", { 
+			location:1,
+			id:"arrow",
+			length:12,
+			width: 8,
+			foldback:0.1
+		} ]
+	]
+});
+
+jsPlumb.bind('jsPlumbConnection', function(info) {
+	var sourceComponent = $(info.source).closest('.component').data('component');
+	var targetComponent = $(info.target).closest('.component').data('component');
+
+	sourceComponent.connect( $(info.source).text(), targetComponent, $(info.target).text() );
+});
+
+jsPlumb.bind('jsPlumbConnectionDetached', function(info) {
+	var sourceComponent = $(info.source).closest('.component').data('component');
+	var targetComponent = $(info.target).closest('.component').data('component');
+
+	sourceComponent.disconnect( $(info.source).text(), targetComponent, $(info.target).text() );
+});
+
+ko.bindingHandlers.component = {
+	init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+		var component = viewModel;
+		jsPlumb.draggable( $(element), { containment: 'parent' } );
+
+		component.init()
+		$(element).data('component', component);
+
+		_.defer(function() {
+			$(element).find('ul.inputs li').each(function() {
+				log.info("Making input ", this);
+				jsPlumb.makeTarget( $(this), {
+					anchor: 'LeftMiddle',
+					maxConnections: 1,
+					container: 'workPanel'
+				});
+			});
+			$(element).find('ul.outputs li').each(function() {
+				log.info("Making output ", this);
+				jsPlumb.makeSource( $(this), {
+					anchor: 'RightMiddle',
+					maxConnections: 1,
+					container: 'workPanel'
+				});
+			});
+		});
+	}
+}
