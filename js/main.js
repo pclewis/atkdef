@@ -62,11 +62,15 @@ var File = function(viewModel, fileEntry) {
 
 };
 
-File.prototype.read = function(cb) {
-	var reader = new FileReader();
-	reader.onloadend = function() { cb(this.result) };
-	this.fileEntry().file(function(file){  reader.readAsBinaryString(file)  });
-};
+_.extend( File.prototype,
+	{	read: function(cb) {
+			var reader = new FileReader();
+			reader.onloadend = function() { cb(this.result) };
+			this.fileEntry().file(function(file){  reader.readAsBinaryString(file)  });
+		}
+	,	toURL: function() { return this.fileEntry().toURL(); }
+	}
+);
 
 var FileType = {
 	PLAINTEXT: 'PlainText',
@@ -157,7 +161,7 @@ ViewModel.prototype.addFiles = function(files) {
 					 	});
 					}).done( function(fw) {
 						fw.write(file);
-				 		self.fileSystem().root.getFile( file.name, {}, _.bind(self.files.push, self.files) );
+				 		self.fileSystem().root.getFile( file.name, {}, function(f){  self.files.push(new File(self, f))  });
 					}).fail( fileSystemError );
 		})
 	);
@@ -167,12 +171,12 @@ ViewModel.prototype.addFiles = function(files) {
  * Delete passed file from local storage.
  * @param  {FileEntry} fileEntry File to delete
  */
-ViewModel.prototype.deleteFile = function(fileEntry) {
+ViewModel.prototype.deleteFile = function(file) {
 	var self = this;
-	if(confirm("Delete file " + fileEntry.name + "?")) {
-		fileEntry.remove( function() {
-			log.info("Deleted file " + fileEntry.name);
-			self.files.remove(fileEntry);
+	if(confirm("Delete file " + file.name() + "?")) {
+		file.fileEntry().remove( function() {
+			log.info("Deleted file " + file.name());
+			self.files.remove(file);
 		}, fileSystemError)
 	}
 };
