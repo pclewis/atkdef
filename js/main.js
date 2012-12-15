@@ -1,4 +1,3 @@
-/*jshint lastsemic: true, laxcomma: true, smarttabs: true */
 function fileSystemError(e) {
 	var msg = '';
 
@@ -153,7 +152,7 @@ ViewModel.prototype.addFiles = function(files) {
 	// TODO: ask to overwrite?
 	return $.when(
 		_.map(files, function(file) {
-			console.log("Creating " + file.name);
+			log.info("Creating " + file.name);
 			return $.Deferred( function(d) {
 						self.fileSystem().root.getFile(file.name, {create: true, exclusive: true}, d.resolve, d.reject);
 					}).pipe( function(fe) {
