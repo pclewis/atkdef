@@ -532,15 +532,16 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 	ko.bindingHandlers.componentOption = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			this.type = valueAccessor().type;
-			this.chain = (this.type === 'checkbox') ? 'checked' : 'value';
-			element.type = this.type;
+			var type = valueAccessor().type
+			  , chain = (type === 'checkbox') ? 'checked' : 'value';
+			element.type = type;
 
-			return ko.bindingHandlers[this.chain].init.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+			return ko.bindingHandlers[chain].init.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
 		},
 
 		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			return ko.bindingHandlers[this.chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+			var chain = (element.type === 'checkbox') ? 'checked' : 'value';
+			return ko.bindingHandlers[chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
 		}
 	};
 });
