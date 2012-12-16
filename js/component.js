@@ -30,15 +30,13 @@ define(function(require) {
 					return obs;
 				});
 
-				self.panels = _.objMap(self.panels, function(v) {
-					return ko.computed(_.bind(v, self));
+				self.panels = _.objMap(self.panels, function(fn) {
+					return ko.computed(_.bind(self._callOutputFn, self, fn));
 				});
 
-				_.each(self.outputs, function(properties, name) {
+				self.outpins = _.objMap(self.outputs, function(properties) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
-					self.outpins[name] = ko.computed({
-						read: _.bind(self._callOutputFn, self, fn)
-					});
+					return ko.computed(_.bind(self._callOutputFn, self, fn));
 				});
 			}
 
@@ -63,7 +61,7 @@ define(function(require) {
 
 		,	_callOutputFn: function(self, fn) {
 				try {
-					return fn.apply(self, self.inpins);
+					return fn.apply(self);
 				} catch(err) {
 					if(err === self.MissingInput) return undefined;
 					throw err;

@@ -1,5 +1,4 @@
  ☐ Add sort/uniq/etc components
- ☐ Add hex/binary viewer
  ☐ Add bit stat counter
  ☐ Add repeat finder
  ☐ Make checkboxes prettier
@@ -7,9 +6,11 @@
  ☐ delete component
  ☐ memoize component?
  ☐ add defaults for options
+ ☐ BUG: browser freeze when disconnecting ciphertext from swap bytes in simple descramble viewer
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Add hex/binary viewer @done (12-12-16 14:04)
  ✔ Add output panels @done (12-12-16 13:26)
  ✔ Add bit scramble pattern decoder @done (12-12-16 01:47)
  ✔ Add dual-output file component (plain/cipher) @done (12-12-16 01:12)

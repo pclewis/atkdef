@@ -13,9 +13,8 @@ requirejs.config(
 			{	'exports': '_'
 			}
 
-		,	'underscore.objMapFunctions':
-			{	'deps': ['underscore']
-			}
+		,	'underscore.objMapFunctions': ['underscore']
+		,	'underscore.partial': ['underscore']
 
 		,	'jsPlumb':
 			{	'deps': ['jquery', 'jquery-ui']
@@ -37,6 +36,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	  , Component = require('atk/component')
 	  , Class     = require('atk/class')
 	  ;
+
+	require('underscore.partial');
 
 	function fileSystemError(e) {
 		var msg = '';
@@ -410,8 +411,10 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 						for(var bit = 0x8000, scrbit = 0x80; bit > 0; bit >>= 2, scrbit >>= 1) {
 							var x0 = true, x1 = true, sx0 = true, sx1 = true, sb = bit >> 1;
 							for(var j = i; j < plaintext.length-1; j += blockSize) {
-								var pt = (plaintext.charCodeAt(j) << 8) + plaintext.charCodeAt(j+1),
-								    ct = ciphertext.charCodeAt(j) + (ciphertext.charCodeAt(j+1) << 8);
+								var pt = (plaintext.charCodeAt(j) << 8) + plaintext.charCodeAt(j+1)
+								  , ct = (ciphertext.charCodeAt(j) << 8) + ciphertext.charCodeAt(j+1)
+								  ;
+								    //ct = ciphertext.charCodeAt(j) + (ciphertext.charCodeAt(j+1) << 8)
 								if((pt & bit) === (ct & bit)) x1 = false;
 								else x0 = false;
 								if(((pt & bit)>>1) === (ct & sb)) sx1 = false;
@@ -476,6 +479,43 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			,	outputs: {}
 			,	panels:
 				{	text: function(){  return this.readInput('in', true)  }
+				}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Hex Panel'
+			,	description: 'Show hex representation of data'
+			,	inputs: {'in': {}}
+			,	outputs: {}
+			,	panels:
+				{	hex: function(){  return this.hex()  }
+				}
+			,	setup: function(self) {
+					var worker = new Worker('js/workers/convertToBase.js');
+					self.hex = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
+						worker.onmessage = function(e){  cb(e.data)  };
+						worker.postMessage( {data: input, base: 16} );
+					}});
+				}
+			}
+		)
+
+
+		, new Class(Component,
+			{	name: 'Binary Panel'
+			,	description: 'Show binary representation of data'
+			,	inputs: {'in': {}}
+			,	outputs: {}
+			,	panels:
+				{	binary: function(){  return this.bin()  }
+				}
+			,	setup: function(self) {
+					var worker = new Worker('js/workers/convertToBase.js');
+					self.bin = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
+						worker.onmessage = function(e){  cb(e.data)  };
+						worker.postMessage( { data: input, base: 2, spacers: {1: {0: ' '}, 8: {0: '\n'}} } );
+					}});
 				}
 			}
 		)

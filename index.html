@@ -72,7 +72,7 @@
 
 			<!-- ko foreach: components -->
 				<!-- ko foreach: _.keys(panels) -->
-					<div data-bind="attr: {id: 'tab_' + $parentContext.$index() + '_' + $index()}">
+					<div data-bind="attr: {id: 'tab_' + $parentContext.$index() + '_' + $index()}" style="display:none">
 						<pre data-bind="text: $parent.panels[$data]()" />
 					</div>
 				<!-- /ko -->
