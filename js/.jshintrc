@@ -1,0 +1,18 @@
+{	"lastsemic": true
+,	"laxcomma": true
+,	"smarttabs": true
+,	"eqeqeq": true
+,	"latedef": true
+,	"nonew": true
+,	"undef": true
+,	"unused": true
+,	"trailing": true
+,	"browser": true
+,	"jquery": true
+,	"globals":
+		{	"requirejs": false
+		,	"define": false
+		,	"FileError": false
+		,	"confirm": false /* allow confirm but not alert or console.log */
+		}
+}
