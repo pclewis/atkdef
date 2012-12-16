@@ -344,7 +344,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 		, new Class(Component,
-			{	name: 'Toggle'
+			{	name: 'Toggle In'
 			,	description: 'Toggle between two inputs'
 			,	inputs: {'in1': {}, 'in2': {}}
 			,	outputs:
@@ -354,6 +354,19 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 						else
 							return this.readInput('in1');
 					}
+				}
+			,	options:
+				{	'toggle': 'checkbox'	}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Toggle Out'
+			,	description: 'Toggle between two outputs'
+			,	inputs: {'in': {}}
+			,	outputs:
+				{	'out1': function() {   if(!this.readOption('toggle')) return this.readInput('in')   }
+				,	'out2': function() {   if( this.readOption('toggle')) return this.readInput('in')   }
 				}
 			,	options:
 				{	'toggle': 'checkbox'	}
