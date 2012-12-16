@@ -45,7 +45,16 @@
 					<ul class="outputs" data-bind="foreach: _.keys(outputs)">
 						<li data-bind="text: $data"></li>
 					</ul>
-					<div class="options">
+					<div class="options" data-bind="if: !_.isEmpty(options)">
+						<!-- hacky nonsense to keep toggling this purely in view logic -->
+						<input data-bind="attr: {id: 'component_options_toggle'+$index()}" type="checkbox" class="show_options" />
+						<label data-bind="attr: {for: 'component_options_toggle'+$index()}">options</label>
+						<ul data-bind="foreach: _.keys(options)">
+							<li>
+								<label data-bind="attr: {for: 'component_options_pin'+$parentContext.$index()+'_'+$index()}">p</label>
+								<label><span data-bind="text: $data"></span><input type="text" data-bind="value: $parent.options[$data]" /></label>
+							</li>
+						</ul>
 					</div>
 				</div>
 			<!-- /ko -->
@@ -58,6 +67,14 @@
 		</div>
 
 		<div id="optionPanel">
+			<!-- ko foreach: components -->
+			<ul data-bind="foreach: _.keys(options)">
+				<li>
+					<input data-bind="attr: {id: 'component_options_pin'+$parentContext.$index()+'_'+$index()}" type="checkbox" />
+					<label><span data-bind="text: $data"></span><input type="text" data-bind="value: $parent.options[$data]" /></label>
+				</li>
+			</ul>
+			<!-- /ko -->
 		</div>
 	</body>
 </html>

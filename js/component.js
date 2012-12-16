@@ -23,10 +23,7 @@ define(function(require) {
 					self.setup();
 				}
 
-				self._options = {};
-				_.each(self.options, function(properties, name) {
-					self._options[name] = ko.observable();
-				});
+				self.options = _.objMap(self.options, function(){  return ko.observable()  });
 
 				_.each(self.outputs, function(properties, name) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
@@ -52,7 +49,7 @@ define(function(require) {
 			}
 
 		,	readOption: function(self, name) {
-				return self._options[name]();
+				return self.options[name]();
 			}
 
 		,	_callOutputFn: function(self, fn) {

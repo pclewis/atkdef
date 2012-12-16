@@ -139,6 +139,7 @@ div {
 	color: @complement-active-fg;
 	.noSelect();
 	span.name {
+		text-align: center;
 		word-wrap: break-word;
 		margin: 2px;
 		display: block;
@@ -164,4 +165,81 @@ div {
 
 ._jsPlumb_endpoint, ._jsPlumb_connector {
 	opacity: 0.5;
+}
+
+div.options {
+	text-align: center;
+}
+
+div.options > label {
+	display: inline-block;
+	font-size: 80%;
+	padding: 2px;
+	background-color: @secondary-a-inactive-bg;
+	color: @secondary-a-inactive-fg;
+	border: 1px solid @secondary-a-border;
+}
+
+div.options > input {
+	display: none;
+	& ~ ul { display: none; }
+	&:checked ~ label {
+		background-color: @secondary-a-active-bg;
+		color: @secondary-a-active-fg;
+	}
+	&:checked ~ ul {
+		display: inline-block;
+		list-style-type: none;
+		position: absolute;
+		right: 50%;
+		top: 100%;
+		text-align: center;
+		margin: 0;
+
+		li {
+			border: 1px solid @secondary-a-border;
+			border-radius: 3px;
+			background-color: @secondary-a-active-bg;
+			color: @secondary-a-active-fg;
+			display: inline-block;
+			padding: 4px;
+			margin-left: 0;
+			margin-right: -100%;
+
+			label span {
+				width: 100px;
+				text-align: right;
+				margin-right: 10px;
+				&:after { content: ": " }
+			}
+
+			input {
+				font-size: 100%;
+			}
+		}
+	}
+}
+
+#optionPanel {
+	ul {
+		list-style-type: none;
+		margin: 0;
+		border: 0;
+		li > input {
+			display: none;
+			& ~ label { display: none; }
+			&:checked ~ label { display: inline; }
+		}
+	}
+
+	label span {
+		width: 100px;
+		text-align: right;
+		margin-right: 10px;
+		&:after { content: ": " }
+	}
+
+	input {
+		font-size: 100%;
+	}
 }
