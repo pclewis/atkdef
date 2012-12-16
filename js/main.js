@@ -305,7 +305,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			,	description: 'Always output static text'
 			,	inputs: {}
 			,	outputs: {'out': function() { return this.readOption('text') }}
-			,	options: {'text': {}}
+			,	options: {'text': 'text'}
 			}
 		)
 
@@ -314,15 +314,19 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			,	description: 'Log input to console'
 			,	inputs: {'in': {}}
 			,	outputs: {}
+			,	options: {'prefix': 'text'}
 			,	setup: function(self) {
 					self.inpins['in'].subscribe(function(obs) {
 						if(self.subscription) self.subscription.dispose();
-						self.subscription = obs.subscribe(self.log);
+						self.subscription = obs.subscribe(_.bind(self.log,self));
 						self.log( obs() );
 					});
 				}
 			,	log: function(self, data) {
-					if(data !== undefined) log.info(data);
+					if(data !== undefined) {
+						var prefix = self.readOption('prefix') || '';
+						log.info(prefix + data);
+					}
 				}
 			}
 		)
@@ -336,6 +340,23 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				, 'out2': function(){ return this.readInput('in') }
 				, 'out3': function(){ return this.readInput('in') }
 				}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Toggle'
+			,	description: 'Toggle between two inputs'
+			,	inputs: {'in1': {}, 'in2': {}}
+			,	outputs:
+				{	'out': function() {
+						if(this.readOption('toggle'))
+							return this.readInput('in2');
+						else
+							return this.readInput('in1');
+					}
+				}
+			,	options:
+				{	'toggle': 'checkbox'	}
 			}
 		)
 	];
@@ -397,6 +418,20 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 					});
 				});
 			});
+		}
+	};
+
+	ko.bindingHandlers.componentOption = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			this.type = valueAccessor().type;
+			this.chain = (this.type === 'checkbox') ? 'checked' : 'value';
+			element.type = this.type;
+
+			return ko.bindingHandlers[this.chain].init.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+		},
+
+		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			return ko.bindingHandlers[this.chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
 		}
 	};
 });

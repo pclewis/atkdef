@@ -52,7 +52,7 @@
 						<ul data-bind="foreach: _.keys(options)">
 							<li>
 								<label data-bind="attr: {for: 'component_options_pin'+$parentContext.$index()+'_'+$index()}">p</label>
-								<label><span data-bind="text: $data"></span><input type="text" data-bind="value: $parent.options[$data]" /></label>
+								<!-- ko template: {name: 'component-option-template' } --><!-- /ko -->
 							</li>
 						</ul>
 					</div>
@@ -71,10 +71,17 @@
 			<ul data-bind="foreach: _.keys(options)">
 				<li>
 					<input data-bind="attr: {id: 'component_options_pin'+$parentContext.$index()+'_'+$index()}" type="checkbox" />
-					<label><span data-bind="text: $data"></span><input type="text" data-bind="value: $parent.options[$data]" /></label>
+					<!-- ko template: {name: 'component-option-template' } --><!-- /ko -->
 				</li>
 			</ul>
 			<!-- /ko -->
 		</div>
+
+		<script type="text/html" id="component-option-template">
+			<label>
+				<span data-bind="text: $data"></span>
+				<input data-bind="componentOption: $parent.options[$data]"/>
+			</label>
+		</script>
 	</body>
 </html>

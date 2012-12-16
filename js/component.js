@@ -23,7 +23,12 @@ define(function(require) {
 					self.setup();
 				}
 
-				self.options = _.objMap(self.options, function(){  return ko.observable()  });
+				self.options = _.objMap(self.options, function(v){
+					// hacky...
+					var obs = ko.observable();
+					obs.type = v;
+					return obs;
+				});
 
 				_.each(self.outputs, function(properties, name) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
