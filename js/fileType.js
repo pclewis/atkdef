@@ -1,5 +1,5 @@
 define(['atk/Class'], function(Class) {
-	return new Class(
+	return new (new Class(
 		{	PLAINTEXT: 'PlainText'
 		,	CIPHERTEXT: 'CipherText'
 		,	UNKNOWN: 'Unknown'
@@ -11,5 +11,5 @@ define(['atk/Class'], function(Class) {
 				}
 			}
 		}
-	);
+	))();
 });

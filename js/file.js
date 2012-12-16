@@ -1,4 +1,9 @@
-define(['knockout', 'atk/Class', 'atk/fileType'], function(ko, Class, FileType) {
+define(function(require) {
+	var ko       = require('knockout')
+	  , FileType = require('atk/fileType')
+	  , Class    = require('atk/class')
+	  ;
+
 	return new Class(
 		{	__init__: function(self, viewModel, fileEntry) {
 				/* TODO: this should depend on some global/passed config thing instead of the main view model specifically */
