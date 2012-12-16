@@ -15,6 +15,37 @@
   user-select: none;     
 }
 
+.tabbed(@border, @activeFg, @activeBg, @inactiveFg, @inactiveBg) {
+	& > ul {
+		position: absolute;
+		bottom: 100%;
+		list-style-type: none;
+		padding: 0 0 1px 0;
+		margin: 0;
+		li {
+			display: inline;
+			padding: 1px 12px;
+			margin-right: 1px;
+			border: 1px solid @border;
+			background-color: @inactiveBg;
+			font-weight: bold;
+			border-radius: 3px 3px 0 0;
+			&.selected {
+				background-color: @activeBg;
+				border-bottom: 1px solid @activeBg;
+				a {
+					color: @activeFg;
+				}
+			}
+			a {
+				color: @inactiveFg;
+				text-decoration: none;
+			}
+		}
+	}
+}
+
+
 body {
 	background-color: @background;
 	color: @foreground;
@@ -104,11 +135,16 @@ div {
 
 #workPanel {
 	.column(8);
+	.tabbed(@primary-border, @primary-active-fg, @primary-active-bg, @primary-inactive-fg, @primary-inactive-bg);
 	padding: @gutter-width/2;
 	border: 1px solid @primary-border;
 	background-color: @primary-active-bg;
 	height: @mainHeight;
 	position: relative;
+	& > div {
+		width: 100%;
+		height: 100%;
+	}
 }
 
 #componentPanel {
@@ -246,3 +282,4 @@ div.options > input {
 		font-size: 100%;
 	}
 }
+

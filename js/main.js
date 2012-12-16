@@ -468,6 +468,17 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			}
 		)
+
+		, new Class(Component,
+			{	name: 'Text Panel'
+			,	description: 'Show all data as plain text'
+			,	inputs: {'in': {}}
+			,	outputs: {}
+			,	panels:
+				{	text: function(){  return this.readInput('in', true)  }
+				}
+			}
+		)
 	];
 
 
@@ -515,7 +526,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 					jsPlumb.makeTarget( $(this), {
 						anchor: 'LeftMiddle',
 						maxConnections: 1,
-						container: 'workPanel'
+						container: 'tab_design'
 					});
 				});
 				$(element).find('ul.outputs li').each(function() {
@@ -523,7 +534,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 					jsPlumb.makeSource( $(this), {
 						anchor: 'RightMiddle',
 						maxConnections: 1,
-						container: 'workPanel'
+						container: 'tab_design'
 					});
 				});
 			});
@@ -544,6 +555,29 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			return ko.bindingHandlers[chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
 		}
 	};
+
+	ko.bindingHandlers.tabbed = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			$(element).data('tabGroup', ko.utils.unwrapObservable(valueAccessor()));
+		}
+	};
+
+	ko.bindingHandlers.tabLabel = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			var tabGroup = $(element).closest('.tabbed').data('tabGroup');
+			$(element).attr('for', tabGroup + '_' + ko.utils.unwrapObservable(valueAccessor()));
+		}
+	};
+
+	$(document).ready( function() {
+		$('.tabbed .tabs').delegate('a', 'click', function(e) {
+			e.preventDefault();
+			$(e.target).closest('.tabs').find('.selected').removeClass('selected');
+			$(e.target).closest('li').addClass('selected');
+			$(e.target).closest('.tabbed').children('div:visible').hide();
+			$(e.target.href.substring(e.target.href.indexOf('#'))).show();
+		});
+	});
 });
 
 requirejs(["main"]);

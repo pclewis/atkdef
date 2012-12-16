@@ -35,28 +35,47 @@
 			</div>
 		</div>
 
-		<div id="workPanel">
-			<!-- ko foreach: components -->
-				<div class="component" data-bind="component: $data">
-					<span class="name" data-bind="text:name"></span>
-					<ul class="inputs" data-bind="foreach: _.keys(inputs)">
-						<li data-bind="text: $data"></li>
-					</ul>
-					<ul class="outputs" data-bind="foreach: _.keys(outputs)">
-						<li data-bind="text: $data"></li>
-					</ul>
-					<div class="options" data-bind="if: !_.isEmpty(options)">
-						<!-- hacky nonsense to keep toggling this purely in view logic -->
-						<input data-bind="attr: {id: 'component_options_toggle'+$index()}" type="checkbox" class="show_options" />
-						<label data-bind="attr: {for: 'component_options_toggle'+$index()}">options</label>
-						<ul data-bind="foreach: _.keys(options)">
-							<li>
-								<label data-bind="attr: {for: 'component_options_pin'+$parentContext.$index()+'_'+$index()}">p</label>
-								<!-- ko template: {name: 'component-option-template' } --><!-- /ko -->
-							</li>
+		<div id="workPanel" class="tabbed">
+			<ul class="tabs">
+				<li class="selected"><a href="#tab_design">Design</a></li>
+				<!-- ko foreach: components -->
+					<!-- ko foreach: _.keys(panels) -->
+						<li><a data-bind="attr: {href: '#tab_' + $parentContext.$index() + '_' + $index()}, text: $data"></a></li>
+					<!-- /ko -->
+				<!-- /ko -->
+			</ul>
+
+			<div id="tab_design">
+				<!-- ko foreach: components -->
+					<div class="component" data-bind="component: $data">
+						<span class="name" data-bind="text:name"></span>
+						<ul class="inputs" data-bind="foreach: _.keys(inputs)">
+							<li data-bind="text: $data"></li>
 						</ul>
+						<ul class="outputs" data-bind="foreach: _.keys(outputs)">
+							<li data-bind="text: $data"></li>
+						</ul>
+						<div class="options" data-bind="if: !_.isEmpty(options)">
+							<!-- hacky nonsense to keep toggling this purely in view logic -->
+							<input data-bind="attr: {id: 'component_options_toggle'+$index()}" type="checkbox" class="show_options" />
+							<label data-bind="attr: {for: 'component_options_toggle'+$index()}">options</label>
+							<ul data-bind="foreach: _.keys(options)">
+								<li>
+									<label data-bind="attr: {for: 'component_options_pin'+$parentContext.$index()+'_'+$index()}">p</label>
+									<!-- ko template: {name: 'component-option-template' } --><!-- /ko -->
+								</li>
+							</ul>
+						</div>
 					</div>
-				</div>
+				<!-- /ko -->
+			</div>
+
+			<!-- ko foreach: components -->
+				<!-- ko foreach: _.keys(panels) -->
+					<div data-bind="attr: {id: 'tab_' + $parentContext.$index() + '_' + $index()}">
+						<pre data-bind="text: $parent.panels[$data]()" />
+					</div>
+				<!-- /ko -->
 			<!-- /ko -->
 		</div>
 

@@ -30,6 +30,10 @@ define(function(require) {
 					return obs;
 				});
 
+				self.panels = _.objMap(self.panels, function(v) {
+					return ko.computed(_.bind(v, self));
+				});
+
 				_.each(self.outputs, function(properties, name) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
 					self.outpins[name] = ko.computed({
@@ -68,6 +72,7 @@ define(function(require) {
 
 		, inputs: []
 		, outputs: []
+		, panels: {}
 	});
 
 });
