@@ -45,6 +45,8 @@
 					<ul class="outputs" data-bind="foreach: _.keys(outputs)">
 						<li data-bind="text: $data"></li>
 					</ul>
+					<div class="options">
+					</div>
 				</div>
 			<!-- /ko -->
 		</div>
@@ -56,9 +58,6 @@
 		</div>
 
 		<div id="optionPanel">
-			<!-- ko foreach: componentOptions -->
-				<label><span data-bind="text: $data[0]"></span> <input type="text" data-bind="value: $data[1]" /></label>
-			<!-- /ko -->
 		</div>
 	</body>
 </html>

@@ -28,12 +28,14 @@ requirejs.config(
 
 define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPlumb', 'atk/log', 'atk/file'], function($, _, ko, jsPlumb, log, File) {*/
 
-	var $ = require('jquery')
-	  , _ = require('underscore')
-	  , ko = require('knockout')
-	  , log = require('atk/log')
-	  , File = require('atk/file')
-	  , jsPlumb = require('jsPlumb')
+	var $         = require('jquery')
+	  , _         = require('underscore')
+	  , ko        = require('knockout')
+	  , jsPlumb   = require('jsPlumb')
+	  , log       = require('atk/log')
+	  , File      = require('atk/file')
+	  , Component = require('atk/component')
+	  , Class     = require('atk/class')
 	  ;
 
 	function fileSystemError(e) {
@@ -223,76 +225,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		ko.applyBindings(viewModel);
 	});
 
-	var Component = function(def) {
-		var newComponent = function() {};
-		_.extend( newComponent.prototype, Component.prototype, def );
-		return newComponent;
-	};
 
-	_.extend( Component.prototype,
-		{	nullo: ko.observable()
-
-		,	MissingInput: {}
-
-		,	init: function() { var self = this;
-
-				self.inpins  = {};
-				self.outpins = {};
-
-				_.each(self.inputs, function(properties, name) {
-					// do something with type eventually...
-					self.inpins[name] = ko.observable(self.nullo);
-				});
-
-				if(self.setup) {
-					self.setup();
-				}
-
-				self._options = {};
-				_.each(self.options, function(properties, name) {
-					self._options[name] = ko.observable();
-					viewModel.componentOptions.push([name, self._options[name]]);
-				});
-
-				_.each(self.outputs, function(properties, name) {
-					var fn = _.isFunction(properties) ? properties : properties.fn;
-					self.outpins[name] = ko.computed({
-						read: _.bind(self._callOutputFn, self, fn)
-					});
-				});
-			}
-
-		,	connect: function(outputName, target, inputName) { var self = this;
-				target.inpins[inputName]( this.outpins[outputName] );
-				if(this.onConnection) this.onConnection(outputName, target, inputName);
-			}
-
-		,	disconnect: function(outputName, target, inputName) { var self = this;
-				target.inpins[inputName]( this.nullo );
-			}
-
-		,	readInput: function(name, noThrow) { var self = this;
-				var result = self.inpins[name]()();
-				if(result === undefined && !noThrow) throw self.MissingInput;
-				return result;
-			}
-
-		,	readOption: function(name) { var self = this;
-				return self._options[name]();
-			}
-
-		,	_callOutputFn: function(fn) {var self = this;
-				try {
-					return fn.apply(self, this.inpins);
-				} catch(err) {
-					if(err === self.MissingInput) return undefined;
-					throw err;
-				}
-			}
-
-		, inputs: []
-		, outputs: []
-	});
 
 	var FileComponent = function(file) {
 		var self = this;
@@ -314,13 +247,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	);
 
 	components =
-		[ new Component(
+		[ new Class(Component,
 			{	name: 'Swap Bytes'
 			,	description: 'Swap every pair of bytes. Ex: abcd -> badc'
 			,	inputs: {'in': {}}
 			,	outputs:
 				{	'out':
-					{	fn: function(inputs) {
+					{	fn: function() {
 							var bytes = this.readInput('in'), out = '';
 							if(!bytes) return undefined;
 
@@ -336,7 +269,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Component(
+		, new Class(Component,
 			{	name: 'Count Bits'
 			,	description: 'Count the number of total, set, and unset bits.'
 			,	inputs: {'in': {}}
@@ -345,20 +278,20 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				,	'set':   function(){  return this.info().set    }
 				,   'unset': function(){  return this.info().unset  }
 				}
-			,	setup: function() {
-					this.info = ko.computed( {read: _.bind(this.calculate, this)} );
+			,	setup: function(self) {
+					self.info = ko.computed( self.calculate, self );
 				}
-			,	count: function(n) {
+			,	count: function(self, n) {
 					n >>>= 0; // force uint32
 					for(var pc = 0; n; n &= n - 1) ++pc;
 					return pc;
 				}
-			,	calculate: function() {
-					var bytes = this.readInput('in', true), total = 0, set = 0;
+			,	calculate: function(self) {
+					var bytes = self.readInput('in', true), total = 0, set = 0;
 					if(!bytes) return {total: undefined, set: undefined, unset: undefined};
 					for(var i =0; i < bytes.length; ++i) {
 						total += 8;
-						set += this.count(bytes.charCodeAt(i));
+						set += self.count(bytes.charCodeAt(i));
 					}
 
 					return { total: total, set: set, unset: total-set };
@@ -367,7 +300,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 
-		, new Component(
+		, new Class(Component,
 			{	name: 'Static Text'
 			,	description: 'Always output static text'
 			,	inputs: {}
@@ -376,26 +309,25 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Component(
+		, new Class(Component,
 			{	name: 'Log To Console'
 			,	description: 'Log input to console'
 			,	inputs: {'in': {}}
 			,	outputs: {}
-			,	setup: function() {
-					var self = this;
-					this.inpins['in'].subscribe(function(obs) {
+			,	setup: function(self) {
+					self.inpins['in'].subscribe(function(obs) {
 						if(self.subscription) self.subscription.dispose();
 						self.subscription = obs.subscribe(self.log);
 						self.log( obs() );
 					});
 				}
-			,	log: function(data) {
+			,	log: function(self, data) {
 					if(data !== undefined) log.info(data);
 				}
 			}
 		)
 
-		, new Component(
+		, new Class(Component,
 			{	name: 'Tee'
 			,	description: 'Duplicate input to multiple outputs'
 			,	inputs: {'in': {}}
