@@ -6,10 +6,10 @@
  ☐ delete component
  ☐ memoize component?
  ☐ add defaults for options
- ☐ BUG: browser freeze when disconnecting ciphertext from swap bytes in simple descramble viewer
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ BUG: browser freeze when disconnecting ciphertext from swap bytes in simple descramble viewer @done (12-12-16 14:50)
  ✔ Add hex/binary viewer @done (12-12-16 14:04)
  ✔ Add output panels @done (12-12-16 13:26)
  ✔ Add bit scramble pattern decoder @done (12-12-16 01:47)

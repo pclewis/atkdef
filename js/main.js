@@ -493,8 +493,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			,	setup: function(self) {
 					var worker = new Worker('js/workers/convertToBase.js');
+					worker.onmessage = function(e) { self.cb(e.data) };
 					self.hex = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
-						worker.onmessage = function(e){  cb(e.data)  };
+						if(input === undefined) {
+							_.defer(cb);
+							return;
+						}
+						self.cb = cb;
 						worker.postMessage( {data: input, base: 16} );
 					}});
 				}
@@ -512,8 +517,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			,	setup: function(self) {
 					var worker = new Worker('js/workers/convertToBase.js');
+					worker.onmessage = function(e) { self.cb(e.data) };
 					self.bin = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
-						worker.onmessage = function(e){  cb(e.data)  };
+						if(input === undefined) {
+							_.defer(cb);
+							return;
+						}
+						self.cb = cb;
 						worker.postMessage( { data: input, base: 2, spacers: {1: {0: ' '}, 8: {0: '\n'}} } );
 					}});
 				}
