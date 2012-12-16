@@ -261,6 +261,36 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		}
 	);
 
+	var ShowInBasePanel = new Class(Component,
+			{	inputs: {'in': {}}
+			,	outputs: {}
+			,	createWorker: function(self) {
+					self.worker = new Worker('js/workers/convertToBase.js');
+					self.worker.onmessage = function(e) { self.cb(e.data) };
+				}
+			,	__init__: function(self) {
+					self.panels = {};
+					self.panels[self.name] = function() { return self.converted() };
+					self.createWorker();
+				}
+			,	setup: function(self) {
+					self.converted = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
+						if(input === undefined) {
+							_.defer(cb);
+							return;
+						}
+						if(self.cb) { // cancel old worker
+							self.worker.terminate();
+							self.createWorker();
+						}
+						self.cb = cb;
+						self.worker.postMessage({ data: input, base: self.base, spacers: self.spacers, maxLength: self.maxLength });
+					}});
+				}
+			,	maxLength: 0x1E00
+			}
+		);
+
 	components =
 		[ new Class(Component,
 			{	name: 'Swap Bytes'
@@ -483,52 +513,21 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
+		, new Class(ShowInBasePanel,
 			{	name: 'Hex Panel'
 			,	description: 'Show hex representation of data'
-			,	inputs: {'in': {}}
-			,	outputs: {}
-			,	panels:
-				{	hex: function(){  return this.hex()  }
-				}
-			,	setup: function(self) {
-					var worker = new Worker('js/workers/convertToBase.js');
-					worker.onmessage = function(e) { self.cb(e.data) };
-					self.hex = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
-						if(input === undefined) {
-							_.defer(cb);
-							return;
-						}
-						self.cb = cb;
-						worker.postMessage( {data: input, base: 16} );
-					}});
-				}
+			,	base: 16
 			}
 		)
 
-
-		, new Class(Component,
+		, new Class(ShowInBasePanel,
 			{	name: 'Binary Panel'
 			,	description: 'Show binary representation of data'
-			,	inputs: {'in': {}}
-			,	outputs: {}
-			,	panels:
-				{	binary: function(){  return this.bin()  }
-				}
-			,	setup: function(self) {
-					var worker = new Worker('js/workers/convertToBase.js');
-					worker.onmessage = function(e) { self.cb(e.data) };
-					self.bin = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
-						if(input === undefined) {
-							_.defer(cb);
-							return;
-						}
-						self.cb = cb;
-						worker.postMessage( { data: input, base: 2, spacers: {1: {0: ' '}, 8: {0: '\n'}} } );
-					}});
-				}
+			,	base: 2
+			,	spacers: {1: {0: ' '}, 8: {0: '\n'}}
 			}
 		)
+
 	];
 
 
