@@ -182,7 +182,11 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	};
 
 	ViewModel.prototype.addFileComponent = function(file) {
-		this.components.push( new FileComponent(file) );
+		var alt;
+		_.each(this.files(), function(f) {
+			if(f !== file && f.baseName().toLowerCase() === file.baseName().toLowerCase()) alt = f;
+		});
+		this.components.push( new FileComponent(file, alt) );
 	};
 
 	/**
@@ -227,15 +231,25 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 
 
-	var FileComponent = function(file) {
+	var FileComponent = function(file, alt) {
 		var self = this;
 
 		self.name = file.name();
 		self.file = file;
+		self.alternate = alt;
 		self.data = ko.observable();
 		self.file.read( function(data) {
 			self.data(data);
 		});
+		if(self.alternate) {
+			self.alternateData = ko.observable();
+			self.outputs = {};
+			log.info(self.file.fileType());
+			self.outputs[self.file.fileType()] = function() { return this.data() };
+			self.outputs[self.alternate.fileType()] = function() { return this.alternateData() };
+			self.alternate.read( function(data) { self.alternateData(data) });
+			self.name = self.file.baseName();
+		}
 
 	};
 
