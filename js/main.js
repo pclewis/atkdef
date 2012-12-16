@@ -386,6 +386,88 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				{	'toggle': 'checkbox'	}
 			}
 		)
+
+		, new Class(Component,
+			{	name: 'Decode Bit Scramble'
+			,	description: 'Determine bit scramble pattern using plaintext'
+			,	inputs: {'plain': {}, 'cipher': {}}
+			,	outputs:
+				{	'pattern': function(){   return this.decodePattern()   }
+				,	'error': function(){     return this.error()           }
+				}
+			,	setup: function(self) {
+					self.error = ko.observable();
+
+				}
+			,	decodePattern: function(self) {
+					var scramblePattern = ""
+					  , blockSize = 0x1E00 // todo: make an option
+					  , plaintext = self.readInput('plain')
+					  , ciphertext = self.readInput('cipher')
+					  ;
+					for(var i = 0; i < blockSize; i += 2) {
+						var scrambled = 0;
+						for(var bit = 0x8000, scrbit = 0x80; bit > 0; bit >>= 2, scrbit >>= 1) {
+							var x0 = true, x1 = true, sx0 = true, sx1 = true, sb = bit >> 1;
+							for(var j = i; j < plaintext.length-1; j += blockSize) {
+								var pt = (plaintext.charCodeAt(j) << 8) + plaintext.charCodeAt(j+1),
+								    ct = ciphertext.charCodeAt(j) + (ciphertext.charCodeAt(j+1) << 8);
+								if((pt & bit) === (ct & bit)) x1 = false;
+								else x0 = false;
+								if(((pt & bit)>>1) === (ct & sb)) sx1 = false;
+								else sx0 = false;
+							}
+							if(!x0 && !x1)
+								scrambled |= scrbit;
+							if(x0 + x1 + sx0 + sx1 > 1) {
+								self.error("Multiple key bits @ index " + i + " bit: " + bit);
+							}
+							if(x0 + x1 + sx0 + sx1 < 1) {
+								self.error("No key bit @ index " + i + " bit: " + bit);
+							}
+						}
+
+						scramblePattern += String.fromCharCode( scrambled );
+					}
+
+					return scramblePattern;
+				}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Descramble Bits'
+			,	description: 'Descramble bits according to pattern'
+			,	inputs: {'cipher': {}, 'pattern': {}}
+			,	outputs: {'out': function(){   return this.descramble()   }}
+			,	descramble: function(self) {
+					var data    = self.readInput('cipher')
+					  , pattern = self.readInput('pattern')
+					  , out     = ""
+					  ;
+					for(var i = 0, pi = 0, pbi = 0x80; i < data.length; ++i) {
+						var b = data.charCodeAt(i)
+						  , p = pattern.charCodeAt(pi);
+
+						for(var tb = 0x80; tb; tb >>= 2) {
+							// if pattern bit is set, zero out the two target bits and then or them back in swapped. straightforward but probably not optimal.
+							if(p&pbi) b = ((b&~tb)&~(tb>>1)) | ((b&tb)>>1) | ((b&(tb>>1))<<1);
+							pbi >>= 1;
+						}
+						out += String.fromCharCode(b);
+						if(pbi===0) {
+							++pi;
+							pbi=0x80;
+						}
+						if(pi >= pattern.length) {
+							pi = 0;
+						}
+					}
+
+					return out;
+				}
+			}
+		)
 	];
 
 
