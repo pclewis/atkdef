@@ -186,12 +186,14 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		this.components.push( new component() );
 	};
 
-	ViewModel.prototype.addFileComponent = function(file) {
-		var alt;
-		_.each(this.files(), function(f) {
-			if(f !== file && f.baseName().toLowerCase() === file.baseName().toLowerCase()) alt = f;
+	ViewModel.prototype.alternateFile = function(file) {
+		return _.find(this.files(), function(f) {
+			return (f !== file && f.baseName().toLowerCase() === file.baseName().toLowerCase());
 		});
-		this.components.push( new FileComponent(file, alt) );
+	};
+
+	ViewModel.prototype.addFileComponent = function(file) {
+		this.components.push( new FileComponent(file, this.alternateFile(file)) );
 	};
 
 	/**
@@ -257,8 +259,17 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		jsPlumb.reset();
 
 		_.each( obj.components, function(component) {
-			var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   });
-			var ci = new cc();
+			var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   }), ci;
+			if(cc === undefined) {
+				var f = _.find(self.files(), function(c){   return (c.baseName() === component.name || c.name() === component.name)   });
+				if(f === undefined) {
+					throw "Can't load: missing component: " + component.name;
+				}
+				var alt = self.alternateFile(f);
+				ci = new FileComponent(f, alt);
+			} else {
+				ci = new cc();
+			}
 			ci.id = component.id;
 			self.components.push( ci );
 
