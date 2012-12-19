@@ -81,6 +81,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		return actual;
 	};
 
+	var DESIGN_STORAGE_PREFIX = "atk.designs.";
+
 	var ViewModel = function() {
 		var self = this;
 
@@ -90,6 +92,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		this.fileFilter   = ko.observable();
 		this.components   = ko.observableArray();
 		this.componentOptions = ko.observableArray();
+		this.savedDesigns = ko.observableArray( _.chain(localStorage).keys().filter(function(s){  return s.indexOf(DESIGN_STORAGE_PREFIX) === 0  }).map(function(s){ return s.substr(DESIGN_STORAGE_PREFIX.length)  }).value() );
+		this.selectedDesign = ko.observable();
 
 		this.fileNameRegexCipherText = ko.observable( /^(.*)\.dat$/i );
 		this.fileNameRegexPlainText  = ko.observable( /^(.*)\.(bin|dat)\.mp3$/i );
@@ -210,6 +214,73 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			return composed;
 		};
 	};
+
+	ViewModel.prototype.saveDesign = function(name) {
+		localStorage[ DESIGN_STORAGE_PREFIX + name ] = this.serializeDesign();
+		if( !_.contains(this.savedDesigns(), name) ) {
+			this.savedDesigns.push( name );
+		}
+	};
+
+	ViewModel.prototype.loadDesign = function(name) {
+		this.deserializeDesign( localStorage[ DESIGN_STORAGE_PREFIX + name ] );
+	};
+
+	ViewModel.prototype.deleteDesign = function(name) {
+		delete localStorage[ DESIGN_STORAGE_PREFIX + name ];
+		this.savedDesigns.remove(name);
+	};
+
+
+	ViewModel.prototype.serializeDesign = function() {
+		var self = this;
+		return JSON.stringify( {components: _.map(self.components(), self.serializeComponent)} );
+	};
+
+	var serializeConnection = function(connection) {
+		return {	target: connection.target.id
+			   ,	pin: connection.pin
+			   };
+	};
+	ViewModel.prototype.serializeComponent = function(component) {
+		return {	id: component.id
+			   ,	name: component.name
+			   ,	pos: $(component.element).position()
+			   ,	connections: _.objMap(component.connections, serializeConnection)
+			   ,	options: _.objMap(component.options, function(v) { return v(); })
+			   };
+	};
+
+	ViewModel.prototype.deserializeDesign = function(str) {
+		var self = this, obj = JSON.parse(str);
+		self.components.removeAll();
+		jsPlumb.reset();
+
+		_.each( obj.components, function(component) {
+			var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   });
+			var ci = new cc();
+			ci.id = component.id;
+			self.components.push( ci );
+
+			_.defer(function(){
+				$('#' + component.id).css(component.pos);
+				_.each(component.options, function(v, k) {
+					ci.options[k](v);
+				});
+				_.defer( function() { // double-defer so everything will be in position before we connect
+					_.each( component.connections, function(conn, name) {
+						ci.connect( name, $('#' + conn.target).data('component'), conn.pin );
+						jsPlumb.connect(
+						{	source: $('#' + component.id + ' li:contains(' + name + ')')
+						,	target: $('#' + conn.target + ' li:contains(' + conn.pin + ')')
+						});
+					});
+				});
+			});
+		});
+
+	};
+
 
 	var viewModel;
 	window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
@@ -564,10 +635,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	ko.bindingHandlers.component = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			var component = viewModel;
-			jsPlumb.draggable( $(element), { containment: 'parent' } );
 
 			component.init();
+			component.element = element; /* HACK */
+			element.id = component.id;
 			$(element).data('component', component);
+
+			jsPlumb.draggable( $(element), { containment: 'parent' } );
 
 			_.defer(function() {
 				$(element).find('ul.inputs li').each(function() {
@@ -602,19 +676,6 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			var chain = (element.type === 'checkbox') ? 'checked' : 'value';
 			return ko.bindingHandlers[chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
-		}
-	};
-
-	ko.bindingHandlers.tabbed = {
-		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			$(element).data('tabGroup', ko.utils.unwrapObservable(valueAccessor()));
-		}
-	};
-
-	ko.bindingHandlers.tabLabel = {
-		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var tabGroup = $(element).closest('.tabbed').data('tabGroup');
-			$(element).attr('for', tabGroup + '_' + ko.utils.unwrapObservable(valueAccessor()));
 		}
 	};
 

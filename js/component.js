@@ -13,6 +13,8 @@ define(function(require) {
 
 				self.inpins  = {};
 				self.outpins = {};
+				self.id = self.id || _.uniqueId('C');
+				self.connections = {};
 
 				_.each(self.inputs, function(properties, name) {
 					// do something with type eventually...
@@ -41,11 +43,13 @@ define(function(require) {
 			}
 
 		,	connect: function(self, outputName, target, inputName) {
+				self.connections[outputName] = {target: target, pin: inputName };
 				target.inpins[inputName]( self.outpins[outputName] );
 				if(self.onConnection) self.onConnection(outputName, target, inputName);
 			}
 
 		,	disconnect: function(self, outputName, target, inputName) {
+				delete self.connections[outputName];
 				target.inpins[inputName]( nullo );
 			}
 

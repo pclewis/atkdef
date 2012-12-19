@@ -9,29 +9,53 @@
 	</head>
 
 	<body>
-		<div id="filePanel">
+		<div id="filePanel" class="tabbed">
+			<ul class="tabs">
+				<li class="selected"><a href="#tab_files">Files</a></li>
+				<li><a href="#tab_designs">Saved Designs</a></li>
+			</ul>
 
-			<table id="fileTable">
-				<tbody data-bind="foreach: files, attr: { 'data-filter': fileFilter }">
-					<tr data-bind="css: {selected: $root.selectedFile() === $data, plainText: isPlainText(), cipherText: isCipherText()}, click: function() { $root.selectedFile($data) }">
-						<td data-bind="text: name"></td>
-					</tr>
-				</tbody>
-			</table>
+			<div id="tab_files">
+				<table id="fileTable">
+					<tbody data-bind="foreach: files, attr: { 'data-filter': fileFilter }">
+						<tr data-bind="css: {selected: $root.selectedFile() === $data, plainText: isPlainText(), cipherText: isCipherText()}, click: function() { $root.selectedFile($data) }">
+							<td data-bind="text: name"></td>
+						</tr>
+					</tbody>
+				</table>
 
-			<div class="controls">
-				<button data-bind="click: compose(addFiles, selectFiles)">Add Files</button>
-				<button data-bind="click: compose(deleteFile, selectedFile), enable: selectedFile">Delete</button>
-				<a class="button" data-bind="attr: { href: _.result(selectedFile(), 'toURL'), download: _.result(selectedFile(), 'name'), disabled: !selectedFile()}">Download</a>
-				<button data-bind="click: compose(addFileComponent, selectedFile), enable: selectedFile">Add Component</button>
+				<div class="controls">
+					<button data-bind="click: compose(addFiles, selectFiles)">Add Files</button>
+					<button data-bind="click: compose(deleteFile, selectedFile), enable: selectedFile">Delete</button>
+					<a class="button" data-bind="attr: { href: _.result(selectedFile(), 'toURL'), download: _.result(selectedFile(), 'name'), disabled: !selectedFile()}">Download</a>
+					<button data-bind="click: compose(addFileComponent, selectedFile), enable: selectedFile">Add Component</button>
 
-				<label>Filter:
-					<select id="fileFilter" data-bind="value: fileFilter">
-						<option>none</option>
-						<option value="CipherText">ciphertext</option>
-						<option value="PlainText">plaintext</option>
-					</select>
-				</label>	
+					<label>Filter:
+						<select id="fileFilter" data-bind="value: fileFilter">
+							<option>none</option>
+							<option value="CipherText">ciphertext</option>
+							<option value="PlainText">plaintext</option>
+						</select>
+					</label>	
+				</div>
+			</div>
+
+			<div id="tab_designs" style="display:none">
+				<table id="designTable">
+					<tbody data-bind="foreach: savedDesigns">
+						<tr data-bind="css: {selected: $root.selectedDesign() === $data}">
+							<td data-bind="text: $data, click: function() { $root.selectedDesign($data) }"></td>
+						</tr>
+					</tbody>
+				</table>
+
+				<div class="controls">
+					<button data-bind="click: function() { saveDesign( prompt('Name', selectedDesign()) ) }">Save</button>
+					<button data-bind="click: function() { loadDesign( selectedDesign() ) }, enable: selectedDesign()">Load</button>
+					<button data-bind="click: function() { deleteDesign( selectedDesign() ) }, enable: selectedDesign()">Delete</button>
+					<button data-bind="click: function() { alert( serializeDesign() ) }">Dump To Text</button>
+					<button data-bind="click: function() { deserializeDesign( prompt('Paste text') ) }">Load From Text</button>
+				</div>
 			</div>
 		</div>
 
