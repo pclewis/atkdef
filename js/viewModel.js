@@ -195,7 +195,7 @@ define(function(require) {
 		,	deserializeDesign: function(self, str) {
 				var obj = JSON.parse(str);
 				self.components.removeAll();
-				jsPlumb.reset();
+				jsPlumb.deleteEveryEndpoint();
 
 				_.each( obj.components, function(component) {
 					var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   }), ci;
