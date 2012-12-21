@@ -32,40 +32,12 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	  , ko        = require('knockout')
 	  , jsPlumb   = require('jsPlumb')
 	  , log       = require('atk/log')
-	  , File      = require('atk/file')
 	  , Component = require('atk/component')
 	  , Class     = require('atk/class')
+	  , ViewModel = require('atk/viewModel')
 	  ;
 
 	require('underscore.partial');
-
-	function fileSystemError(e) {
-		var msg = '';
-
-		switch (e.code) {
-			case FileError.QUOTA_EXCEEDED_ERR:
-			msg = 'QUOTA_EXCEEDED_ERR';
-			break;
-			case FileError.NOT_FOUND_ERR:
-			msg = 'NOT_FOUND_ERR';
-			break;
-			case FileError.SECURITY_ERR:
-			msg = 'SECURITY_ERR';
-			break;
-			case FileError.INVALID_MODIFICATION_ERR:
-			msg = 'INVALID_MODIFICATION_ERR';
-			break;
-			case FileError.INVALID_STATE_ERR:
-			msg = 'INVALID_STATE_ERR';
-			break;
-			default:
-			msg = 'Unknown Error';
-			break;
-		}
-
-		log.error('FileSystem Error: ' + msg);
-		throw e;
-	}
 
 	/**
 	 * Make a computed observable where the value is set by a callback instead of being returned immediately.
@@ -79,217 +51,6 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		update(target());
 
 		return actual;
-	};
-
-	var DESIGN_STORAGE_PREFIX = "atk.designs.";
-
-	var ViewModel = function() {
-		var self = this;
-
-		this.fileSystem   = ko.observable();
-		this.selectedFile = ko.observable(); // File  // idea: .contract extender to enforce types/etc...
-		this.files        = ko.observableArray();
-		this.fileFilter   = ko.observable();
-		this.components   = ko.observableArray();
-		this.componentOptions = ko.observableArray();
-		this.savedDesigns = ko.observableArray( _.chain(localStorage).keys().filter(function(s){  return s.indexOf(DESIGN_STORAGE_PREFIX) === 0  }).map(function(s){ return s.substr(DESIGN_STORAGE_PREFIX.length)  }).value() );
-		this.selectedDesign = ko.observable();
-
-		this.fileNameRegexCipherText = ko.observable( /^(.*)\.dat$/i );
-		this.fileNameRegexPlainText  = ko.observable( /^(.*)\.(bin|dat)\.mp3$/i );
-
-
-		this.fileSystem.subscribe( function(fileSystem){
-			self.files.removeAll();
-			fileSystem.root.createReader().readEntries(function(entries){
-				self.files.push.apply(self.files,
-					_(entries).map(function(e){  return new File(self, e)  })
-				);
-			});
-		});
-
-	};
-
-	/* Shortcut */
-	ViewModel.prototype._deferred = function(obs, fn) {
-		return ko.computed(obs, this).extend( {deferred: fn} );
-	};
-
-	/**
-	 * Show a multi-file selection dialog box.
-	 * NOTE: If Cancel is pressed, no resolution will ever happen.
-	 *
-	 * @todo fail previous promise when opening a new one? there can only be one up at a time...
-	 * @resolve {[File]} when files are selected
-	 */
-	ViewModel.prototype.selectFiles = function() {
-		var deferred = new $.Deferred()
-		  , input = $('<input type="file" multiple>')
-		  ;
-
-		log.info("Showing file selector");
-
-		input.change( function() {
-			log.info("Selected " + input[0].files.length + " files.");
-			deferred.resolve(input[0].files);
-		});
-
-		input.click();
-
-		return deferred.promise();
-	};
-
-	/**
-	 * Copy passed files into the local storage.
-	 * @param {[File]} files List of files to add.
-	 * @resolve When all files are added.
-	 */
-	ViewModel.prototype.addFiles = function(files) {
-		var self = this;
-
-		log.info("In addFiles");
-
-		// TODO: ask to overwrite?
-		return $.when(
-			_.map(files, function(file) {
-				log.info("Creating " + file.name);
-				return $.Deferred( function(d) {
-							self.fileSystem().root.getFile(file.name, {create: true, exclusive: true}, d.resolve, d.reject);
-						}).pipe( function(fe) {
-							return $.Deferred(function(d) {
-								fe.createWriter(d.resolve, d.reject);
-							});
-						}).done( function(fw) {
-							fw.write(file);
-							self.fileSystem().root.getFile( file.name, {}, function(f){  self.files.push(new File(self, f))  });
-						}).fail( fileSystemError );
-			})
-		);
-	};
-
-	/**
-	 * Delete passed file from local storage.
-	 * @param  {FileEntry} fileEntry File to delete
-	 */
-	ViewModel.prototype.deleteFile = function(file) {
-		var self = this;
-		if(confirm("Delete file " + file.name() + "?")) {
-			file.fileEntry().remove( function() {
-				log.info("Deleted file " + file.name());
-				self.files.remove(file);
-			}, fileSystemError);
-		}
-	};
-
-
-	ViewModel.prototype.addComponent = function(component) {
-		this.components.push( new component() );
-	};
-
-	ViewModel.prototype.alternateFile = function(file) {
-		return _.find(this.files(), function(f) {
-			return (f !== file && f.baseName().toLowerCase() === file.baseName().toLowerCase());
-		});
-	};
-
-	ViewModel.prototype.addFileComponent = function(file) {
-		this.components.push( new FileComponent(file, this.alternateFile(file)) );
-	};
-
-	/**
-	 * Compose potentially Deferred method calls on the ViewModel.
-	 * compose( f, g, x ) returns a function which returns a Deferred which will pass the result of f(g(x)) when finished.
-	 * Each function converted to a Deferred and piped in order, ex: x().pipe(g).pipe(f)
-	 * Note: 'this' will be the ViewModel instance in each function.
-	 */
-	ViewModel.prototype.compose = function() {
-		var fns = arguments
-		  , self = this
-		  ;
-
-		return function() {
-			var start = new $.Deferred()
-			  , composed = _.reduceRight( fns, function(d, f) {
-					return d.pipe(function(){  return $.when( f.apply(self, arguments) )  });
-				}, start );
-			start.resolve();
-			return composed;
-		};
-	};
-
-	ViewModel.prototype.saveDesign = function(name) {
-		localStorage[ DESIGN_STORAGE_PREFIX + name ] = this.serializeDesign();
-		if( !_.contains(this.savedDesigns(), name) ) {
-			this.savedDesigns.push( name );
-		}
-	};
-
-	ViewModel.prototype.loadDesign = function(name) {
-		this.deserializeDesign( localStorage[ DESIGN_STORAGE_PREFIX + name ] );
-	};
-
-	ViewModel.prototype.deleteDesign = function(name) {
-		delete localStorage[ DESIGN_STORAGE_PREFIX + name ];
-		this.savedDesigns.remove(name);
-	};
-
-
-	ViewModel.prototype.serializeDesign = function() {
-		var self = this;
-		return JSON.stringify( {components: _.map(self.components(), self.serializeComponent)} );
-	};
-
-	var serializeConnection = function(connection) {
-		return {	target: connection.target.id
-			   ,	pin: connection.pin
-			   };
-	};
-	ViewModel.prototype.serializeComponent = function(component) {
-		return {	id: component.id
-			   ,	name: component.name
-			   ,	pos: $(component.element).position()
-			   ,	connections: _.objMap(component.connections, serializeConnection)
-			   ,	options: _.objMap(component.options, function(v) { return v(); })
-			   };
-	};
-
-	ViewModel.prototype.deserializeDesign = function(str) {
-		var self = this, obj = JSON.parse(str);
-		self.components.removeAll();
-		jsPlumb.reset();
-
-		_.each( obj.components, function(component) {
-			var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   }), ci;
-			if(cc === undefined) {
-				var f = _.find(self.files(), function(c){   return (c.baseName() === component.name || c.name() === component.name)   });
-				if(f === undefined) {
-					throw "Can't load: missing component: " + component.name;
-				}
-				var alt = self.alternateFile(f);
-				ci = new FileComponent(f, alt);
-			} else {
-				ci = new cc();
-			}
-			ci.id = component.id;
-			self.components.push( ci );
-
-			_.defer(function(){
-				$('#' + component.id).css(component.pos);
-				_.each(component.options, function(v, k) {
-					ci.options[k](v);
-				});
-				_.defer( function() { // double-defer so everything will be in position before we connect
-					_.each( component.connections, function(conn, name) {
-						ci.connect( name, $('#' + conn.target).data('component'), conn.pin );
-						jsPlumb.connect(
-						{	source: $('#' + component.id + ' li:contains(' + name + ')')
-						,	target: $('#' + conn.target + ' li:contains(' + conn.pin + ')')
-						});
-					});
-				});
-			});
-		});
-
 	};
 
 
@@ -314,34 +75,6 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 
 
-	var FileComponent = function(file, alt) {
-		var self = this;
-
-		self.name = file.name();
-		self.file = file;
-		self.alternate = alt;
-		self.data = ko.observable();
-		self.file.read( function(data) {
-			self.data(data);
-		});
-		if(self.alternate) {
-			self.alternateData = ko.observable();
-			self.outputs = {};
-			log.info(self.file.fileType());
-			self.outputs[self.file.fileType()] = function() { return this.data() };
-			self.outputs[self.alternate.fileType()] = function() { return this.alternateData() };
-			self.alternate.read( function(data) { self.alternateData(data) });
-			self.name = self.file.baseName();
-		}
-
-	};
-
-	_.extend( FileComponent.prototype, Component.prototype,
-		{	name: 'file'
-		,	inputs: {}
-		,	outputs: { 'data': function(){  return this.data()  }}
-		}
-	);
 
 	var ShowInBasePanel = new Class(Component,
 			{	inputs: {'in': {}}
@@ -373,7 +106,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		);
 
-	components =
+	window.components =
 		[ new Class(Component,
 			{	name: 'Swap Bytes'
 			,	description: 'Swap every pair of bytes. Ex: abcd -> badc'
