@@ -430,6 +430,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			var component = bindingContext.component
 			  , properties = valueAccessor();
 
+			element.id = component.id + "_" + properties.type + "_" + properties.name;
 			log.debug( "Making " + properties.type + " pin for component: ", component );
 
 			$(element).data('pin-type', properties.type);

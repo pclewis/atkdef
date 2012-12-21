@@ -174,11 +174,12 @@ define(function(require) {
 			}
 
 		,	serializeDesign: function(self) {
-				return JSON.stringify( {components: _.map(self.components(), self.serializeComponent)} );
+				return JSON.stringify( {components: _.map(self.components(), _.bind(self.serializeComponent, self))} );
 			}
 
 		,	serializeConnection: function(self, connection) {
 				return {	target: connection.target.id
+					   ,	type: connection.type
 					   ,	pin: connection.pin
 					   };
 			}
@@ -218,10 +219,11 @@ define(function(require) {
 						});
 						_.defer( function() { // double-defer so everything will be in position before we connect
 							_.each( component.connections, function(conn, name) {
-								ci.connect( name, $('#' + conn.target).data('component'), conn.pin );
+								var type = conn.type || 'input';
+								ci.connect( name, $('#' + conn.target).data('component'), conn.pin, type );
 								jsPlumb.connect(
-								{	source: $('#' + component.id + ' li:contains(' + name + ')')
-								,	target: $('#' + conn.target + ' li:contains(' + conn.pin + ')')
+								{	source: $('#' + component.id + '_output_' + name)
+								,	target: $('#' + conn.target + '_' + type + '_' + conn.pin)
 								});
 							});
 						});
