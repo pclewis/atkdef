@@ -4,7 +4,9 @@ define(function(require) {
 	  , Class = require('atk/class')
 	  , ko    = require('knockout')
 	  , nullo = ko.observable()
+	  , usedIds = []
 	  ;
+
 
 	return new Class(
 		{	MissingInput: {}
@@ -13,7 +15,14 @@ define(function(require) {
 
 				self.inpins  = {};
 				self.outpins = {};
-				self.id = self.id || _.uniqueId('C');
+				if(!self.id) {
+					// If we load from a file, _.uniqueId() might not generate unique ids anymore. This is a crummy hack. Think of something better.
+					do {
+						self.id = _.uniqueId('C');
+					} while(_.contains(usedIds, self.id));
+				}
+				usedIds.push(self.id);
+
 				self.connections = {};
 
 				_.each(self.inputs, function(properties, name) {
