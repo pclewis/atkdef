@@ -363,18 +363,25 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 
 
-	jsPlumb.importDefaults({
-		Endpoint : ["Dot", {radius:6}],
-		PaintStyle : { lineWidth: 2, strokeStyle: '#00ccff' },
-		ConnectionOverlays : [
-			[ "Arrow", {
-				location:0.5,
-				id:"arrow",
-				length:12,
-				width: 8,
-				foldback:0.2
-			} ]
-		]
+	jsPlumb.importDefaults(
+		{	Endpoint: ["Dot", {radius:6}]
+		//,	Connector: [ "Bezier", {curviness: 100} ]
+		//,	Connector : "Flowchart"
+		,	PaintStyle:
+			{	lineWidth: 2
+			,	strokeStyle: '#00ccff'
+			,	outlineColor : '#0D161A'
+			,	outlineWidth : 3
+			}
+		, ConnectionOverlays:
+			[	[	"Arrow",
+				{	location: 1
+				,	length: 12
+				,	width: 8
+				,	foldback: 0.2
+				}
+				]
+			]
 	});
 
 	jsPlumb.bind('jsPlumbConnection', function(info) {
