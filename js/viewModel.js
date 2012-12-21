@@ -148,8 +148,8 @@ define(function(require) {
 				var fns = _.toArray(arguments).slice(1); // cut self off
 
 				return function() {
-					var start = new $.deferred()
-					  , composed = _.reduceright( fns, function(d, f) {
+					var start = new $.Deferred()
+					  , composed = _.reduceRight( fns, function(d, f) {
 							return d.pipe(function(){  return $.when( f.apply(self, arguments) )  });
 						}, start );
 					start.resolve();
