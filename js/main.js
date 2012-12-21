@@ -333,6 +333,21 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 		, new Class(Component,
+			{	name: 'XOR'
+			,	description: 'XOR inputs'
+			,	inputs: {'in1': {}, 'in2': {}}
+			,	outputs: {'out': function() {
+					var a = this.readInput('in1'), b = this.readInput('in2'), out = '';
+					for(var i = 0; i < a.length && i < b.length; ++i) {
+						out += String.fromCharCode( a.charCodeAt(i) ^ b.charCodeAt(i) );
+					}
+
+					return out;
+				}}
+			}
+		)
+
+		, new Class(Component,
 			{	name: 'Text Panel'
 			,	description: 'Show all data as plain text'
 			,	inputs: {'in': {}}
