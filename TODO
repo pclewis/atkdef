@@ -6,6 +6,10 @@
  ☐ delete component
  ☐ memoize component?
  ☐ add defaults for options
+ ☐ use eval hax to make Class names show up in console
+ ☐ write to file component?
+ ☐ clear/new design
+ ☐ panels in detached windows
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
  ✔ link outputs to options like inputs @done (12-12-21 00:14)
