@@ -234,6 +234,21 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 		, new Class(Component,
+			{	name: 'Toggle'
+			,	description: 'Toggle between two states'
+			,	inputs: {}
+			,	outputs:
+				{	'out1': function() {   return this.readOption('toggle')   }
+				,	'out2': function() {   return this.readOption('toggle')   }
+				,	'out3': function() {   return this.readOption('toggle')   }
+				}
+			,	options:
+				{	'toggle': 'checkbox'	}
+			}
+		)
+
+
+		, new Class(Component,
 			{	name: 'Decode Bit Scramble'
 			,	description: 'Determine bit scramble pattern using plaintext'
 			,	inputs: {'plain': {}, 'cipher': {}}
@@ -353,27 +368,39 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		PaintStyle : { lineWidth: 2, strokeStyle: '#00ccff' },
 		ConnectionOverlays : [
 			[ "Arrow", {
-				location:1,
+				location:0.5,
 				id:"arrow",
 				length:12,
 				width: 8,
-				foldback:0.1
+				foldback:0.2
 			} ]
 		]
 	});
 
 	jsPlumb.bind('jsPlumbConnection', function(info) {
-		var sourceComponent = $(info.source).closest('.component').data('component');
-		var targetComponent = $(info.target).closest('.component').data('component');
+		var sourceComponent = $(info.source).data('component')
+		  , targetComponent = $(info.target).data('component')
+		  , sourcePin       = $(info.source).data('pin-name')
+		  , targetPin       = $(info.target).data('pin-name')
+		  , targetType      = $(info.target).data('pin-type')
+		  ;
 
-		sourceComponent.connect( $(info.source).text(), targetComponent, $(info.target).text() );
+		log.info( "Connection", sourceComponent, targetComponent, sourcePin, targetPin, targetType );
+
+		sourceComponent.connect( sourcePin, targetComponent, targetPin, targetType );
 	});
 
 	jsPlumb.bind('jsPlumbConnectionDetached', function(info) {
-		var sourceComponent = $(info.source).closest('.component').data('component');
-		var targetComponent = $(info.target).closest('.component').data('component');
+		var sourceComponent = $(info.source).data('component')
+		  , targetComponent = $(info.target).data('component')
+		  , sourcePin       = $(info.source).data('pin-name')
+		  , targetPin       = $(info.target).data('pin-name')
+		  , targetType      = $(info.target).data('pin-type')
+		  ;
 
-		sourceComponent.disconnect( $(info.source).text(), targetComponent, $(info.target).text() );
+		log.info( "Disconnection", sourceComponent, targetComponent, sourcePin, targetPin, targetType );
+
+		sourceComponent.disconnect( sourcePin, targetComponent, targetPin, targetType );
 	});
 
 	ko.bindingHandlers.component = {
@@ -384,42 +411,78 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			component.element = element; /* HACK */
 			element.id = component.id;
 			$(element).data('component', component);
+			bindingContext.component = component;
 
 			jsPlumb.draggable( $(element), { containment: 'parent' } );
 
-			_.defer(function() {
-				$(element).find('ul.inputs li').each(function() {
-					log.debug("Making input ", this);
-					jsPlumb.makeTarget( $(this), {
+		}
+	};
+
+	var optionPinAnchor = jsPlumb.makeDynamicAnchor( ['LeftMiddle', 'RightMiddle', 'TopCenter'], function(xy, wh, txy, twh, anchors) {
+		//log.debug( xy, wh, txy, twh );
+		if(wh[0] <= 5 || wh[1] <= 5) return anchors[2]; // BottomCenter
+		if( txy[0] + twh[0]/2 <= xy[0] + wh[0]/2 ) return anchors[0];
+		return anchors[1];
+	});
+
+	ko.bindingHandlers.componentPin = {
+		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+			var component = bindingContext.component
+			  , properties = valueAccessor();
+
+			log.debug( "Making " + properties.type + " pin for component: ", component );
+
+			$(element).data('pin-type', properties.type);
+			$(element).data('pin-name', properties.name);
+			$(element).data('component', component);
+
+			switch(properties.type) {
+				case 'input':
+					jsPlumb.makeTarget( $(element), {
 						anchor: 'LeftMiddle',
 						maxConnections: 1,
 						container: 'tab_design'
 					});
-				});
-				$(element).find('ul.outputs li').each(function() {
-					log.debug("Making output ", this);
-					jsPlumb.makeSource( $(this), {
+					break;
+
+				case 'output':
+					jsPlumb.makeSource( $(element), {
 						anchor: 'RightMiddle',
 						maxConnections: 1,
 						container: 'tab_design'
 					});
-				});
-			});
+					break;
+
+				case 'option':
+					jsPlumb.makeTarget( $(element), {
+						anchor: optionPinAnchor,
+						maxConnections: 1,
+						container: 'tab_design'
+					});
+					break;
+			}
 		}
 	};
+
+	function unwindObservable(v) {
+		while (ko.isObservable(v())) { v = v() }
+		return v;
+	}
 
 	ko.bindingHandlers.componentOption = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
 			var type = valueAccessor().type
-			  , chain = (type === 'checkbox') ? 'checked' : 'value';
+			  , chain = (type === 'checkbox') ? 'checked' : 'value'
+			  ;
 			element.type = type;
 
-			return ko.bindingHandlers[chain].init.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+			return ko.bindingHandlers[chain].init.call(this, element, _.partial(unwindObservable, valueAccessor), allBindingsAccessor, viewModel, bindingContext);
 		},
 
 		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var chain = (element.type === 'checkbox') ? 'checked' : 'value';
-			return ko.bindingHandlers[chain].update.call(this, element, valueAccessor, allBindingsAccessor, viewModel, bindingContext);
+			var chain = (element.type === 'checkbox') ? 'checked' : 'value'
+			  ;
+			return ko.bindingHandlers[chain].update.call(this, element, _.partial(unwindObservable, valueAccessor), allBindingsAccessor, viewModel, bindingContext);
 		}
 	};
 

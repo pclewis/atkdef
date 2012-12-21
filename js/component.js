@@ -42,15 +42,20 @@ define(function(require) {
 				});
 			}
 
-		,	connect: function(self, outputName, target, inputName) {
-				self.connections[outputName] = {target: target, pin: inputName };
-				target.inpins[inputName]( self.outpins[outputName] );
-				if(self.onConnection) self.onConnection(outputName, target, inputName);
+		,	connect: function(self, outputName, target, pinName, pinType) {
+				var targetObj = (pinType === 'input') ? target.inpins : target.options;
+				if(self.connections[outputName]) self.disconnect(outputName, self.connections[outputName].target, self.connections[outputName].pin, self.connections[outputName].type);
+				self.connections[outputName] = {target: target, pin: pinName, type: pinType};
+				targetObj[pinName]( self.outpins[outputName] );
+				if(self.onConnection) self.onConnection(outputName, target, pinName, pinType);
 			}
 
-		,	disconnect: function(self, outputName, target, inputName) {
+		,	disconnect: function(self, outputName, target, pinName, pinType) {
 				delete self.connections[outputName];
-				target.inpins[inputName]( nullo );
+				if(pinType === 'input')
+					target.inpins[pinName]( nullo );
+				else if(pinType === 'option')
+					target.options[pinName]( undefined );
 			}
 
 		,	readInput: function(self, name, noThrow) {
@@ -60,7 +65,9 @@ define(function(require) {
 			}
 
 		,	readOption: function(self, name) {
-				return self.options[name]();
+				var result = self.options[name]();
+				if(ko.isObservable(result)) result = result();
+				return result;
 			}
 
 		,	_callOutputFn: function(self, fn) {

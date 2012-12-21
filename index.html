@@ -72,19 +72,19 @@
 			<div id="tab_design">
 				<!-- ko foreach: components -->
 					<div class="component" data-bind="component: $data">
-						<span class="name" data-bind="text:name"></span>
+						<span class="name" data-bind="text: name"></span>
 						<ul class="inputs" data-bind="foreach: _.keys(inputs)">
-							<li data-bind="text: $data"></li>
+							<li data-bind="componentPin: {type: 'input', name: $data}, text: $data"></li>
 						</ul>
 						<ul class="outputs" data-bind="foreach: _.keys(outputs)">
-							<li data-bind="text: $data"></li>
+							<li data-bind="componentPin: {type: 'output', name: $data}, text: $data"></li>
 						</ul>
 						<div class="options" data-bind="if: !_.isEmpty(options)">
 							<!-- hacky nonsense to keep toggling this purely in view logic -->
-							<input data-bind="attr: {id: 'component_options_toggle'+$index()}" type="checkbox" class="show_options" />
+							<input data-bind="attr: {id: 'component_options_toggle'+$index()}, click: function(){ jsPlumb.repaintEverything(); return true }" type="checkbox" class="show_options" />
 							<label data-bind="attr: {for: 'component_options_toggle'+$index()}">options</label>
-							<ul data-bind="foreach: _.keys(options)">
-								<li>
+							<ul class="options" data-bind="foreach: _.keys(options)">
+								<li data-bind="componentPin: {type: 'option', name: $data}">
 									<label data-bind="attr: {for: 'component_options_pin'+$parentContext.$index()+'_'+$index()}">p</label>
 									<!-- ko template: {name: 'component-option-template' } --><!-- /ko -->
 								</li>

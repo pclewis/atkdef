@@ -6,9 +6,9 @@
  ☐ delete component
  ☐ memoize component?
  ☐ add defaults for options
- ☐ link outputs to options like inputs
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ link outputs to options like inputs @done (12-12-21 00:14)
  ✔ save/load @done (12-12-19 00:56)
  ✔ BUG: freeze when toggling input to hex panel @done (12-12-16 15:16)
  ✔ BUG: browser freeze when disconnecting ciphertext from swap bytes in simple descramble viewer @done (12-12-16 14:50)

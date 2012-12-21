@@ -169,6 +169,8 @@ div {
 
 .component {
 	position: absolute;
+	z-index: 100;
+	opacity: 0.9;
 	width: 50px;
 	height: 50px;
 	font-size: 80%;
@@ -223,12 +225,8 @@ div.options > label {
 
 div.options > input {
 	display: none;
-	& ~ ul { display: none; }
-	&:checked ~ label {
-		background-color: @secondary-a-active-bg;
-		color: @secondary-a-active-fg;
-	}
-	&:checked ~ ul {
+	& ~ ul {
+		visibility: hidden;
 		display: inline-block;
 		list-style-type: none;
 		position: absolute;
@@ -238,12 +236,13 @@ div.options > input {
 		margin: 0;
 
 		li {
+			height: 1px;
+			padding: 0 4px;
 			border: 1px solid @secondary-a-border;
 			border-radius: 3px;
 			background-color: @secondary-a-active-bg;
 			color: @secondary-a-active-fg;
 			display: inline-block;
-			padding: 4px;
 			margin-left: 0;
 			margin-right: -100%;
 
@@ -257,6 +256,21 @@ div.options > input {
 			input {
 				font-size: 100%;
 			}
+		}
+	}
+	&:checked ~ label {
+		background-color: @secondary-a-active-bg;
+		color: @secondary-a-active-fg;
+	}
+	&:checked ~ ul {
+		visibility: visible;
+		display: inline-block;
+		position: absolute;
+		right: 50%;
+		top: 100%;
+		li {
+			height: auto;
+			padding: 4px;
 		}
 	}
 }
