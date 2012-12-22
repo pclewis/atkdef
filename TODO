@@ -10,6 +10,18 @@
  ☐ write to file component?
  ☐ clear/new design
  ☐ maybe allow multiple connections from outputs...tee components take a lot of space
+ ☐ add destructor for components to clean up panels/windows
+ ☐ ignore jsPlumb disconnect events when clearing (throwing exceptions currently)
+ ☐ make popup windows prettier
+ ☐ test on ipad
+ ☐ look into ristretto-js
+ ☐ move more heavy lifting into workers
+ ☐ make design area scrollable
+ ☐ arbitrary JS eval component
+ ☐ labels/groups might be nice
+ ☐ saving a group of components as a new component would be super fancy
+ ☐ custom defined file types
+ ☐ sort components
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
  ✔ maybe make connections from outputs with no inputs different colors, make connections from outputs with inputs blend all the colors @done (12-12-22 02:26)
