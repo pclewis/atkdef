@@ -9,7 +9,6 @@
  ☐ write to file component?
  ☐ maybe allow multiple connections from outputs...tee components take a lot of space
  ☐ add destructor for components to clean up panels/windows
- ☐ ignore jsPlumb disconnect events when clearing (throwing exceptions currently)
  ☐ make popup windows prettier
  ☐ test on ipad
  ☐ look into ristretto-js
@@ -22,6 +21,7 @@
  ☐ sort components
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ ignore jsPlumb disconnect events when clearing (throwing exceptions currently) @done (12-12-22 11:51)
  ✔ clear/new design @done (12-12-22 11:49)
  ✔ Add sort/uniq/head/tail/etc components @done (12-12-22 11:46)
  ✔ maybe make connections from outputs with no inputs different colors, make connections from outputs with inputs blend all the colors @done (12-12-22 02:26)

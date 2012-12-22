@@ -532,7 +532,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 		log.info( "Disconnection", sourceComponent, targetComponent, sourcePin, targetPin, targetType );
 
-		sourceComponent.disconnect( sourcePin, targetComponent, targetPin, targetType );
+		if(sourceComponent) sourceComponent.disconnect( sourcePin, targetComponent, targetPin, targetType );
 	});
 
 	ko.bindingHandlers.component = {
