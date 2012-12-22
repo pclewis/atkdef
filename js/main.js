@@ -369,6 +369,48 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 		, new Class(Component,
+			{	name: 'sort'
+			,	description: 'Sort lines'
+			,	inputs: {'in': {}}
+			,	outputs: {'out': function() {
+					return this.readInput('in').split("\n").sort().join("\n");
+				}}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'uniq'
+			,	description: 'Merge unique lines'
+			,	inputs: {'in': {}}
+			,	outputs: {'out':function() {
+					return _.uniq( this.readInput('in').split('\n'), true ).join("\n");
+				}}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'head'
+			,	description: 'Remove all but first <lines> lines'
+			,	options: {'lines': 'text'}
+			,	inputs: {'in': {}}
+			,	outputs: {'out':function() {
+					return this.readInput('in').split("\n").slice( 0, parseInt(this.readOption('lines') || '5',10) ).join("\n");
+				}}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'tail'
+			,	description: 'Remove all but last <lines> lines'
+			,	options: {'lines': 'text'}
+			,	inputs: {'in': {}}
+			,	outputs: {'out':function() {
+					return this.readInput('in').split("\n").slice( 0 - parseInt(this.readOption('lines') || '5',10) ).join("\n");
+				}}
+			}
+		)
+
+		, new Class(Component,
 			{	name: 'Panel'
 			,	description: 'Show data in a panel.'
 			,	inputs: {'in': {}}
