@@ -431,6 +431,9 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			,	updatePanel: function(self, data) {
 					self.panel.content(data);
 				}
+			,	destroy: function(self) {
+					viewModel.panels.remove(self.panel); /* HACK */
+				}
 			}
 		)
 
@@ -449,6 +452,9 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			,	updatePanel: function(self, data) {
 					self.window.document.body.firstChild.innerText = data;
+				}
+			,	destroy: function(self) {
+					self.window.close();
 				}
 			}
 		)
