@@ -166,12 +166,18 @@ define(function(require) {
 			}
 
 		,	loadDesign: function(self, name) {
+				self.newDesign();
 				self.deserializeDesign( localStorage[ DESIGN_STORAGE_PREFIX + name ] );
 			}
 
 		,	deleteDesign: function(self, name) {
 				delete localStorage[ DESIGN_STORAGE_PREFIX + name ];
 				self.savedDesigns.remove(name);
+			}
+
+		,	newDesign: function(self) {
+				self.components.removeAll();
+				jsPlumb.deleteEveryEndpoint();
 			}
 
 		,	serializeDesign: function(self) {
@@ -195,8 +201,6 @@ define(function(require) {
 
 		,	deserializeDesign: function(self, str) {
 				var obj = JSON.parse(str);
-				self.components.removeAll();
-				jsPlumb.deleteEveryEndpoint();
 
 				_.each( obj.components, function(component) {
 					var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   }), ci;

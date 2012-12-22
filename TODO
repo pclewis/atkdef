@@ -1,4 +1,3 @@
- ☐ Add sort/uniq/head/tail/etc components
  ☐ Add bit stat counter
  ☐ Add repeat finder
  ☐ Make checkboxes prettier
@@ -8,7 +7,6 @@
  ☐ add defaults for options
  ☐ use eval hax to make Class names show up in console
  ☐ write to file component?
- ☐ clear/new design
  ☐ maybe allow multiple connections from outputs...tee components take a lot of space
  ☐ add destructor for components to clean up panels/windows
  ☐ ignore jsPlumb disconnect events when clearing (throwing exceptions currently)
@@ -24,6 +22,8 @@
  ☐ sort components
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ clear/new design @done (12-12-22 11:49)
+ ✔ Add sort/uniq/head/tail/etc components @done (12-12-22 11:46)
  ✔ maybe make connections from outputs with no inputs different colors, make connections from outputs with inputs blend all the colors @done (12-12-22 02:26)
  ✔ panels in detached windows @done (12-12-22 00:28)
  ✔ link outputs to options like inputs @done (12-12-21 00:14)
