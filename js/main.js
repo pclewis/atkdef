@@ -112,25 +112,41 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		);
 
+	var SimpleComponent = new Class("SimpleComponent", Component,
+		{	__init__: function(self) {
+				var getParamNames = function(func) { // from http://stackoverflow.com/questions/1007981/how-to-get-function-parameter-names-values-dynamically-from-javascript
+					var funStr = func.toString();
+					return funStr.slice(funStr.indexOf('(')+1, funStr.indexOf(')')).match(/([^\s,]+)/g);
+				};
+
+				var fns = _.objFilter(self._definition, function(v,k){   return _.isFunction(v) && k[0] !== '_'   })
+				  , params = _(fns).chain().map(getParamNames).flatten().uniq().without('self').value()
+				  ;
+
+				self.inputs = _.object( params, _(params).map(function(){  return {}  }) );
+				self.outputs = _(fns).objMap(function(fn) {
+					return function() {
+						var args = _.map(getParamNames(fn), function(pn){  return (pn==='self') ? self : self.readInput(pn)  });
+						return fn.apply(self, args);
+					};
+				});
+			}
+		}
+	);
+
 	window.components =
-		[ new Class(Component,
+		[ new Class(SimpleComponent,
 			{	name: 'Swap Bytes'
 			,	description: 'Swap every pair of bytes. Ex: abcd -> badc'
-			,	inputs: {'in': {}}
-			,	outputs:
-				{	'out':
-					{	fn: function() {
-							var bytes = this.readInput('in'), out = '';
-							if(!bytes) return undefined;
+			,	out: function(self, bytes) {
+					var out = "";
 
-							for(var i = 0; i < bytes.length; i += 2) {
-								if(i+1 < bytes.length) out += bytes[i+1];
-								out += bytes[i];
-							}
-
-							return out;
-						}
+					for(var i = 0; i < bytes.length; i += 2) {
+						if(i+1 < bytes.length) out += bytes[i+1];
+						out += bytes[i];
 					}
+
+					return out;
 				}
 			}
 		)
@@ -166,11 +182,10 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		)
 
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'Static Text'
 			,	description: 'Always output static text'
-			,	inputs: {}
-			,	outputs: {'out': function() { return this.readOption('text') }}
+			,	out: function(self) { return self.readOption('text') }
 			,	options: {'text': 'text'}
 			}
 		)
@@ -209,33 +224,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'Toggle In'
 			,	description: 'Toggle between two inputs'
-			,	inputs: {'in1': {}, 'in2': {}}
-			,	outputs:
-				{	'out': function() {
-						if(this.readOption('toggle'))
-							return this.readInput('in2');
-						else
-							return this.readInput('in1');
-					}
+			,	options: { 'toggle': 'checkbox' }
+			,	out: function(self, in1, in2) {
+						return self.readOption('toggle') ? in2 : in1;
 				}
-			,	options:
-				{	'toggle': 'checkbox'	}
-			}
-		)
-
-		, new Class(Component,
-			{	name: 'Toggle Out'
-			,	description: 'Toggle between two outputs'
-			,	inputs: {'in': {}}
-			,	outputs:
-				{	'out1': function() {   if(!this.readOption('toggle')) return this.readInput('in')   }
-				,	'out2': function() {   if( this.readOption('toggle')) return this.readInput('in')   }
-				}
-			,	options:
-				{	'toggle': 'checkbox'	}
 			}
 		)
 
@@ -264,7 +259,6 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			,	setup: function(self) {
 					self.error = ko.observable();
-
 				}
 			,	decodePattern: function(self) {
 					var scramblePattern = ""
@@ -304,18 +298,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'Descramble Bits'
 			,	description: 'Descramble bits according to pattern'
-			,	inputs: {'cipher': {}, 'pattern': {}}
-			,	outputs: {'out': function(){   return this.descramble()   }}
-			,	descramble: function(self) {
-					var data    = self.readInput('cipher')
-					  , pattern = self.readInput('pattern')
-					  , out     = ""
-					  ;
-					for(var i = 0, pi = 0, pbi = 0x80; i < data.length; ++i) {
-						var b = data.charCodeAt(i)
+			,	descramble: function(self, pattern, cipherText) {
+					var out = "";
+					for(var i = 0, pi = 0, pbi = 0x80; i < cipherText.length; ++i) {
+						var b = cipherText.charCodeAt(i)
 						  , p = pattern.charCodeAt(pi);
 
 						for(var tb = 0x80; tb; tb >>= 2) {
@@ -338,18 +327,16 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'XOR'
 			,	description: 'XOR inputs'
-			,	inputs: {'in1': {}, 'in2': {}}
-			,	outputs: {'out': function() {
-					var a = this.readInput('in1'), b = this.readInput('in2'), out = '';
-					for(var i = 0; i < a.length && i < b.length; ++i) {
-						out += String.fromCharCode( a.charCodeAt(i) ^ b.charCodeAt(i) );
+			,	out: function(self, in1, in2) {
+					var out = '';
+					for(var i = 0; i < in1.length && i < in2.length; ++i) {
+						out += String.fromCharCode( in1.charCodeAt(i) ^ in2.charCodeAt(i) );
 					}
-
 					return out;
-				}}
+				}
 			}
 		)
 
@@ -368,45 +355,33 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'sort'
 			,	description: 'Sort lines'
-			,	inputs: {'in': {}}
-			,	outputs: {'out': function() {
-					return this.readInput('in').split("\n").sort().join("\n");
-				}}
+			,	'out': function(self, input){    return input.split("\n").sort().join("\n")    }
 			}
 		)
 
 		, new Class(Component,
 			{	name: 'uniq'
 			,	description: 'Merge unique lines'
-			,	inputs: {'in': {}}
-			,	outputs: {'out':function() {
-					return _.uniq( this.readInput('in').split('\n'), true ).join("\n");
-				}}
+			,	out: function(self, input){    return _.uniq( input.split('\n'), true ).join("\n")    }
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'head'
 			,	description: 'Remove all but first <lines> lines'
 			,	options: {'lines': 'text'}
-			,	inputs: {'in': {}}
-			,	outputs: {'out':function() {
-					return this.readInput('in').split("\n").slice( 0, parseInt(this.readOption('lines') || '5',10) ).join("\n");
-				}}
+			,	'out': function(self, input){    return input.split("\n").slice( 0, parseInt(self.readOption('lines') || '5',10) ).join("\n")    }
 			}
 		)
 
-		, new Class(Component,
+		, new Class(SimpleComponent,
 			{	name: 'tail'
 			,	description: 'Remove all but last <lines> lines'
 			,	options: {'lines': 'text'}
-			,	inputs: {'in': {}}
-			,	outputs: {'out':function() {
-					return this.readInput('in').split("\n").slice( 0 - parseInt(this.readOption('lines') || '5',10) ).join("\n");
-				}}
+			,	out: function(self, input){    return input.split("\n").slice( 0 - parseInt(this.readOption('lines') || '5',10) ).join("\n")    }
 			}
 		)
 

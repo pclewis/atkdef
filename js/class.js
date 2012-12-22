@@ -34,6 +34,7 @@ define(function(require) {
 		_.extend( newClass.prototype, _.objMap(def, function(v/*,k*/){   return _.isFunction(v) ? addSelfAsFirstArgument(v) : v   }) );
 
 		newClass.prototype.super = parent;
+		newClass.prototype._definition = def;
 
 		return newClass;
 	};
