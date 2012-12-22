@@ -555,7 +555,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 			jsPlumb.draggable( $(element), { stop: function(event, ui) {
 				if(ui.position.top < 0 || ui.position.left < 0) {
-					jsPlumb.select( {element: $(element).find('li')} ).detach();
+					jsPlumb.select( {source: $(element).find('li')} ).detach();
+					jsPlumb.select( {target: $(element).find('li')} ).detach();
 					bindingContext.$root.components.remove(component);
 					component.destroy();
 				}
