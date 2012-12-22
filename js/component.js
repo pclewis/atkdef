@@ -30,10 +30,6 @@ define(function(require) {
 					self.inpins[name] = ko.observable(nullo);
 				});
 
-				if(self.setup) {
-					self.setup();
-				}
-
 				self.options = _.objMap(self.options, function(v){
 					// hacky...
 					var obs = ko.observable();
@@ -41,9 +37,9 @@ define(function(require) {
 					return obs;
 				});
 
-				self.panels = _.objMap(self.panels, function(fn) {
-					return ko.computed(_.bind(self._callOutputFn, self, fn));
-				});
+				if(self.setup) {
+					self.setup();
+				}
 
 				self.outpins = _.objMap(self.outputs, function(properties) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
@@ -90,7 +86,6 @@ define(function(require) {
 
 		, inputs: []
 		, outputs: []
-		, panels: {}
 	});
 
 });

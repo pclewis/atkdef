@@ -39,14 +39,15 @@ define(function(require) {
 
 	return new Class(
 		{	__init__: function(self) {
-				self.fileSystem   = ko.observable();
-				self.selectedFile = ko.observable(); // File  // idea: .contract extender to enforce types/etc...
-				self.files        = ko.observableArray();
-				self.fileFilter   = ko.observable();
-				self.components   = ko.observableArray();
+				self.fileSystem       = ko.observable();
+				self.selectedFile     = ko.observable(); // File  // idea: .contract extender to enforce types/etc...
+				self.files            = ko.observableArray();
+				self.fileFilter       = ko.observable();
+				self.components       = ko.observableArray();
 				self.componentOptions = ko.observableArray();
-				self.savedDesigns = ko.observableArray( _.chain(localStorage).keys().filter(function(s){  return s.indexOf(DESIGN_STORAGE_PREFIX) === 0  }).map(function(s){ return s.substr(DESIGN_STORAGE_PREFIX.length)  }).value() );
-				self.selectedDesign = ko.observable();
+				self.savedDesigns     = ko.observableArray( _.chain(localStorage).keys().filter(function(s){  return s.indexOf(DESIGN_STORAGE_PREFIX) === 0  }).map(function(s){ return s.substr(DESIGN_STORAGE_PREFIX.length)  }).value() );
+				self.selectedDesign   = ko.observable();
+				self.panels           = ko.observableArray();
 
 				self.fileNameRegexCipherText = ko.observable( /^(.*)\.dat$/i );
 				self.fileNameRegexPlainText  = ko.observable( /^(.*)\.(bin|dat)\.mp3$/i );

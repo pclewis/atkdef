@@ -74,21 +74,24 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	});
 
 
+	var Panel = new Class(
+		{	'__init__': function(self, name) {
+				self.name = ko.observable(name);
+				self.content = ko.observable();
+			}
+		}
+	);
 
 
-	var ShowInBasePanel = new Class(Component,
+	var ConvertToBaseComponent = new Class(Component,
 			{	inputs: {'in': {}}
-			,	outputs: {}
+			,	outputs: {'out': function(){   return this.converted()   }}
 			,	createWorker: function(self) {
 					self.worker = new Worker('js/workers/convertToBase.js');
 					self.worker.onmessage = function(e) { self.cb(e.data) };
 				}
-			,	__init__: function(self) {
-					self.panels = {};
-					self.panels[self.name] = function() { return self.converted() };
-					self.createWorker();
-				}
 			,	setup: function(self) {
+					self.createWorker();
 					self.converted = ko.computed(function(){  return self.readInput('in', true)  }).extend({deferred: function(input, cb) {
 						if(input === undefined) {
 							_.defer(cb);
@@ -347,29 +350,61 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
-		, new Class(Component,
-			{	name: 'Text Panel'
-			,	description: 'Show all data as plain text'
-			,	inputs: {'in': {}}
-			,	outputs: {}
-			,	panels:
-				{	text: function(){  return this.readInput('in', true)  }
-				}
-			}
-		)
-
-		, new Class(ShowInBasePanel,
-			{	name: 'Hex Panel'
+		, new Class(ConvertToBaseComponent,
+			{	name: 'hexdump'
 			,	description: 'Show hex representation of data'
 			,	base: 16
 			}
 		)
 
-		, new Class(ShowInBasePanel,
-			{	name: 'Binary Panel'
+		, new Class(ConvertToBaseComponent,
+			{	name: 'bindump'
 			,	description: 'Show binary representation of data'
 			,	base: 2
 			,	spacers: {1: {0: ' '}, 8: {0: '\n'}}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Panel'
+			,	description: 'Show data in a panel.'
+			,	inputs: {'in': {}}
+			,	options: {'name': 'text'}
+			,	setup: function(self) {
+					self.panel = new Panel('Panel');
+					viewModel.panels.push(self.panel); /* HACK */
+					self.inpins['in'].subscribe(function(obs) {
+						if(self.subscription) self.subscription.dispose();
+						self.subscription = obs.subscribe(_.bind(self.updatePanel,self));
+						self.updatePanel( obs() );
+					});
+
+					self.options.name.subscribe(function(value) {
+						self.panel.name( ko.utils.unwrapObservable(value) );
+					});
+				}
+			,	updatePanel: function(self, data) {
+					self.panel.content(data);
+				}
+			}
+		)
+
+		, new Class(Component,
+			{	name: 'Window'
+			,	description: 'Show data in a window.'
+			,	inputs: {'in': {}}
+			,	setup: function(self) {
+					self.window = window.open('', '_blank', 'location=no,menubar=no,status=no,titlebar=no,toolbar=no' );
+					self.window.document.write("<pre></pre>");
+					self.inpins['in'].subscribe(function(obs) {
+						if(self.subscription) self.subscription.dispose();
+						self.subscription = obs.subscribe(_.bind(self.updatePanel,self));
+						self.updatePanel( obs() );
+					});
+				}
+			,	updatePanel: function(self, data) {
+					self.window.document.body.firstChild.innerText = data;
+				}
 			}
 		)
 
