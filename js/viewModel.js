@@ -190,11 +190,14 @@ define(function(require) {
 					   ,	pin: connection.pin
 					   };
 			}
+		,	serializeConnections: function(self, connections) {
+				return _(connections).map( _(self.serializeConnection).bind(self) );
+			}
 		,	serializeComponent: function(self, component) {
 				return {	id: component.id
 					   ,	name: component.name
 					   ,	pos: $(component.element).position()
-					   ,	connections: _.objMap(component.connections, self.serializeConnection)
+					   ,	connections: _.objMap(component.connections, _(self.serializeConnections).bind(self))
 					   ,	options: _.objMap(component.options, function(v) { return v(); })
 					   };
 			}
@@ -224,12 +227,17 @@ define(function(require) {
 						});
 						_.defer( function() { // double-defer so everything will be in position before we connect
 							_.each( component.connections, function(conn, name) {
-								var type = conn.type || 'input';
-								ci.connect( name, $('#' + conn.target).data('component'), conn.pin, type );
-								jsPlumb.connect(
-								{	source: $('#' + component.id + '_output_' + name)
-								,	target: $('#' + conn.target + '_' + type + '_' + conn.pin)
-								});
+								function connect(conn) {
+									var type = conn.type || 'input';
+									ci.connect( name, $('#' + conn.target).data('component'), conn.pin, type );
+									jsPlumb.connect(
+									{	source: $('#' + component.id + '_output_' + name)
+									,	target: $('#' + conn.target + '_' + type + '_' + conn.pin)
+									});
+								}
+
+								if(_.isArray(conn)) _.each(conn, connect);
+								else connect(conn);
 							});
 						});
 					});

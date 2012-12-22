@@ -6,7 +6,6 @@
  ☐ add defaults for options
  ☐ use eval hax to make Class names show up in console
  ☐ write to file component?
- ☐ maybe allow multiple connections from outputs...tee components take a lot of space
  ☐ make popup windows prettier
  ☐ test on ipad
  ☐ look into ristretto-js
@@ -16,8 +15,10 @@
  ☐ saving a group of components as a new component would be super fancy
  ☐ custom defined file types
  ☐ sort components
+ ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ maybe allow multiple connections from outputs...tee components take a lot of space @done (12-12-22 14:35)
  ✔ delete component @done (12-12-22 14:12)
  ✔ make design area scrollable @done (12-12-22 13:46)
  ✔ add destructor for components to clean up panels/windows @done (12-12-22 13:28)

@@ -507,8 +507,10 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			targetColorMap[sourceComponent.id] = sourceColor;
 			targetComponent.colors = targetColorMap;
 
-			_.each(targetComponent.connections, function(connection, pin) {
-				updateConnectionColors( targetComponent, pin, connection.target, connection.type );
+			_(targetComponent.connections).each( function(connections, pin) {
+				_(connections).each( function(connection) {
+					updateConnectionColors( targetComponent, pin, connection.target, connection.type );
+				});
 			});
 		}
 	}
@@ -562,12 +564,12 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		}
 	};
 
-	var optionPinAnchor = jsPlumb.makeDynamicAnchor( ['LeftMiddle', 'RightMiddle', 'TopCenter'], function(xy, wh, txy, twh, anchors) {
+	var makeOptionPinAnchor = function() { return jsPlumb.makeDynamicAnchor( ['LeftMiddle', 'RightMiddle', 'TopCenter'], function(xy, wh, txy, twh, anchors) {
 		//log.debug( xy, wh, txy, twh );
 		if(wh[0] <= 5 || wh[1] <= 5) return anchors[2]; // BottomCenter
 		if( txy[0] + twh[0]/2 <= xy[0] + wh[0]/2 ) return anchors[0];
 		return anchors[1];
-	});
+	})};
 
 	ko.bindingHandlers.componentPin = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
@@ -593,14 +595,14 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				case 'output':
 					jsPlumb.makeSource( $(element), {
 						anchor: 'RightMiddle',
-						maxConnections: 1,
+						maxConnections: -1,
 						container: 'tab_design'
 					});
 					break;
 
 				case 'option':
 					jsPlumb.makeTarget( $(element), {
-						anchor: optionPinAnchor,
+						anchor: makeOptionPinAnchor(),
 						maxConnections: 1,
 						container: 'tab_design'
 					});

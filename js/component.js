@@ -41,6 +41,8 @@ define(function(require) {
 					self.setup();
 				}
 
+				self.connections = _.objMap(self.outputs, function(){ return [] });
+
 				self.outpins = _.objMap(self.outputs, function(properties) {
 					var fn = _.isFunction(properties) ? properties : properties.fn;
 					return ko.computed(_.bind(self._callOutputFn, self, fn));
@@ -53,14 +55,16 @@ define(function(require) {
 
 		,	connect: function(self, outputName, target, pinName, pinType) {
 				var targetObj = (pinType === 'input') ? target.inpins : target.options;
-				if(self.connections[outputName]) self.disconnect(outputName, self.connections[outputName].target, self.connections[outputName].pin, self.connections[outputName].type);
-				self.connections[outputName] = {target: target, pin: pinName, type: pinType};
+				self.connections[outputName].push( {target: target, pin: pinName, type: pinType} );
 				targetObj[pinName]( self.outpins[outputName] );
 				if(self.onConnection) self.onConnection(outputName, target, pinName, pinType);
 			}
 
 		,	disconnect: function(self, outputName, target, pinName, pinType) {
-				delete self.connections[outputName];
+				self.connections[outputName] = _(self.connections[outputName]).reject( function(conn) {
+					return conn.target === target && conn.pin === pinName && conn.type === pinType;
+				});
+
 				if(pinType === 'input')
 					target.inpins[pinName]( nullo );
 				else if(pinType === 'option')
