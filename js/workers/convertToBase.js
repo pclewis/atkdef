@@ -12,12 +12,12 @@ function pad(str, n, chr) {
 function convertToBase(data, base, spacers, maxLength) {
 	if(!data) return "";
 	spacers = spacers || {1: {0: ' '}, 16: { 8: ' ', 0: "\n"} };
-	maxLength = maxLength || data.length;
 	var out = ""
+	  , length = _.min([maxLength || data.length, data.length])
 	  , itemSize = (0xFF).toString(base).length
 	  , maxSpacerMod = _.max( _.map(spacers, function(v,k) { return parseInt(k,10); }))
 	  ;
-	for(var i = 0; i < maxLength; ++i) {
+	for(var i = 0; i < length; ++i) {
 		if(i>0) {
 			for(var j = 1; j <= maxSpacerMod; ++j) {
 				if(spacers[j]) {
