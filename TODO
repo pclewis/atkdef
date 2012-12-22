@@ -2,7 +2,6 @@
  ☐ Add repeat finder
  ☐ Make checkboxes prettier
  ☐ Add actual icon or something for pinning
- ☐ delete component
  ☐ memoize component?
  ☐ add defaults for options
  ☐ use eval hax to make Class names show up in console
@@ -12,7 +11,6 @@
  ☐ test on ipad
  ☐ look into ristretto-js
  ☐ move more heavy lifting into workers
- ☐ make design area scrollable
  ☐ arbitrary JS eval component
  ☐ labels/groups might be nice
  ☐ saving a group of components as a new component would be super fancy
@@ -20,6 +18,8 @@
  ☐ sort components
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ delete component @done (12-12-22 14:12)
+ ✔ make design area scrollable @done (12-12-22 13:46)
  ✔ add destructor for components to clean up panels/windows @done (12-12-22 13:28)
  ✔ ignore jsPlumb disconnect events when clearing (throwing exceptions currently) @done (12-12-22 11:51)
  ✔ clear/new design @done (12-12-22 11:49)

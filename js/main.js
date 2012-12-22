@@ -551,7 +551,13 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			$(element).data('component', component);
 			bindingContext.component = component;
 
-			jsPlumb.draggable( $(element), { containment: 'parent' } );
+			jsPlumb.draggable( $(element), { stop: function(event, ui) {
+				if(ui.position.top < 0 || ui.position.left < 0) {
+					jsPlumb.select( {element: $(element).find('li')} ).detach();
+					bindingContext.$root.components.remove(component);
+					component.destroy();
+				}
+			}} );
 
 		}
 	};

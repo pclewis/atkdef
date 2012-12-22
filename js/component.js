@@ -47,6 +47,10 @@ define(function(require) {
 				});
 			}
 
+		,	destroy: function(self) {
+				usedIds = _(usedIds).without([self.id]);
+			}
+
 		,	connect: function(self, outputName, target, pinName, pinType) {
 				var targetObj = (pinType === 'input') ? target.inpins : target.options;
 				if(self.connections[outputName]) self.disconnect(outputName, self.connections[outputName].target, self.connections[outputName].pin, self.connections[outputName].type);

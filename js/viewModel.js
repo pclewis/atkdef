@@ -176,9 +176,7 @@ define(function(require) {
 			}
 
 		,	newDesign: function(self) {
-				_.each( self.components.removeAll(), function(component) {
-					if(_.isFunction(component.destroy)) component.destroy();
-				});
+				_.invoke( self.components.removeAll(), 'destroy' );
 				jsPlumb.deleteEveryEndpoint();
 			}
 
