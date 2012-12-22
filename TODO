@@ -4,7 +4,6 @@
  ☐ Add actual icon or something for pinning
  ☐ memoize component?
  ☐ add defaults for options
- ☐ use eval hax to make Class names show up in console
  ☐ write to file component?
  ☐ make popup windows prettier
  ☐ test on ipad
@@ -18,6 +17,7 @@
  ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ use eval hax to make Class names show up in console @done (12-12-22 17:49)
  ✔ maybe allow multiple connections from outputs...tee components take a lot of space @done (12-12-22 14:35)
  ✔ delete component @done (12-12-22 14:12)
  ✔ make design area scrollable @done (12-12-22 13:46)

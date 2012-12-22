@@ -8,7 +8,7 @@ define(function(require) {
 	  ;
 
 
-	return new Class(
+	return new Class( "Component",
 		{	MissingInput: {}
 
 		,	init: function(self) {

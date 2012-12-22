@@ -77,7 +77,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	});
 
 
-	var Panel = new Class(
+	var Panel = new Class( "Panel",
 		{	'__init__': function(self, name) {
 				self.name = ko.observable(name);
 				self.content = ko.observable();
@@ -86,7 +86,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	);
 
 
-	var ConvertToBaseComponent = new Class(Component,
+	var ConvertToBaseComponent = new Class("ConvertToBaseComponent", Component,
 			{	inputs: {'in': {}}
 			,	outputs: {'out': function(){   return this.converted()   }}
 			,	createWorker: function(self) {

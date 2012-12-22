@@ -9,6 +9,7 @@
 ,	"trailing": true
 ,	"browser": true
 ,	"jquery": true
+,	"es5": true // just for using reserved words as object keys
 ,	"globals":
 		{	"requirejs": false
 		,	"define": false

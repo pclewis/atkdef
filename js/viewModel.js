@@ -37,7 +37,7 @@ define(function(require) {
 		throw e;
 	}
 
-	return new Class(
+	return new Class( "ViewModel",
 		{	__init__: function(self) {
 				self.fileSystem       = ko.observable();
 				self.selectedFile     = ko.observable(); // File  // idea: .contract extender to enforce types/etc...

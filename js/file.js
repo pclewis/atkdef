@@ -4,7 +4,7 @@ define(function(require) {
 	  , Class    = require('atk/class')
 	  ;
 
-	return new Class(
+	return new Class( "File",
 		{	__init__: function(self, viewModel, fileEntry) {
 				/* TODO: this should depend on some global/passed config thing instead of the main view model specifically */
 				self.name         = ko.observable(fileEntry.name);

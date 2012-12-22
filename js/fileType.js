@@ -1,5 +1,7 @@
-define(['atk/Class'], function(Class) {
-	return new (new Class(
+define(function(require) {
+	var Class = require('atk/class');
+
+	return new (new Class("fileType",
 		{	PLAINTEXT: 'PlainText'
 		,	CIPHERTEXT: 'CipherText'
 		,	UNKNOWN: 'Unknown'
