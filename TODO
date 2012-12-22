@@ -9,10 +9,10 @@
  ☐ use eval hax to make Class names show up in console
  ☐ write to file component?
  ☐ clear/new design
- ☐ maybe make connections from outputs with no inputs different colors, make connections from outputs with inputs blend all the colors
  ☐ maybe allow multiple connections from outputs...tee components take a lot of space
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ maybe make connections from outputs with no inputs different colors, make connections from outputs with inputs blend all the colors @done (12-12-22 02:26)
  ✔ panels in detached windows @done (12-12-22 00:28)
  ✔ link outputs to options like inputs @done (12-12-21 00:14)
  ✔ save/load @done (12-12-19 00:56)

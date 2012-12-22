@@ -3,6 +3,7 @@ requirejs.config(
 	,	paths:
 		{	atk: '../'
 		,	jquery: 'jquery.min'
+		,	'jquery.xcolor': 'jquery.xcolor.min'
 		,	'jquery-ui': 'jquery-ui.min'
 		,	underscore: 'underscore-min'
 		,	knockout: 'knockout-min'
@@ -15,6 +16,7 @@ requirejs.config(
 
 		,	'underscore.objMapFunctions': ['underscore']
 		,	'underscore.partial': ['underscore']
+		,	'jquery.xcolor': ['jquery']
 
 		,	'jsPlumb':
 			{	'deps': ['jquery', 'jquery-ui']
@@ -38,6 +40,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	  ;
 
 	require('underscore.partial');
+	require('jquery.xcolor');
 
 	/**
 	 * Make a computed observable where the value is set by a callback instead of being returned immediately.
@@ -411,7 +414,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 	];
 
 
-
+	var baseColors = $.xcolor.tetrad('#00CCFF');
 
 	jsPlumb.importDefaults(
 		{	Endpoint: ["Dot", {radius:6}]
@@ -420,8 +423,10 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		,	PaintStyle:
 			{	lineWidth: 2
 			,	strokeStyle: '#00ccff'
-			,	outlineColor : '#0D161A'
-			,	outlineWidth : 3
+			//,	outlineColor : '#0D161A'
+			//,	outlineWidth : 1
+			, outlineColor: '#000000'
+			, outlineWidth: 1
 			}
 		, ConnectionOverlays:
 			[	[	"Arrow",
@@ -434,6 +439,32 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			]
 	});
 
+	function getBaseColor(component, pin) {
+		var base = baseColors[ parseInt(component.id.slice(1), 10) % baseColors.length ]
+		  , colors = $.xcolor.splitcomplement(base);
+
+		return colors[ _.indexOf(_.keys(component.outpins), pin) % colors.length ];
+	}
+
+	function updateConnectionColors(sourceComponent, sourcePin, targetComponent, targetPinType) {
+		var pinId           = sourceComponent.id + '_output_' + sourcePin /* FIXME duped calculation, make this a function */
+		  , sourceColors    = _.values(sourceComponent.colors || {x: getBaseColor(sourceComponent, sourcePin)})
+		  , sourceColor     = _.reduce( sourceColors.slice(1), $.xcolor.average, $.xcolor.average(sourceColors[0], sourceColors[0]) ).getHex()
+		  , targetColorMap  = targetComponent.colors || {}
+		  ;
+
+		jsPlumb.select( {source: pinId} ).setPaintStyle( _.defaults({strokeStyle: sourceColor}, jsPlumb.Defaults.PaintStyle));
+
+		if(targetPinType === 'input') {
+			targetColorMap[sourceComponent.id] = sourceColor;
+			targetComponent.colors = targetColorMap;
+
+			_.each(targetComponent.connections, function(connection, pin) {
+				updateConnectionColors( targetComponent, pin, connection.target, connection.type );
+			});
+		}
+	}
+
 	jsPlumb.bind('jsPlumbConnection', function(info) {
 		var sourceComponent = $(info.source).data('component')
 		  , targetComponent = $(info.target).data('component')
@@ -445,6 +476,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		log.info( "Connection", sourceComponent, targetComponent, sourcePin, targetPin, targetType );
 
 		sourceComponent.connect( sourcePin, targetComponent, targetPin, targetType );
+
+		updateConnectionColors( sourceComponent, sourcePin, targetComponent, targetType );
 	});
 
 	jsPlumb.bind('jsPlumbConnectionDetached', function(info) {
