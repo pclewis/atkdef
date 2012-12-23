@@ -414,6 +414,47 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
+		, new Class(SimpleComponent,
+			{	name: 'Transpose Bits'
+			,	description: 'Transform MxN bit matrix to NxM matrix'
+			,	options: {'cols': 'text'}
+			,	out: function(self, input) {
+					var cols = parseInt( self.readOption('cols') || '8', 10 )
+					  , m = cols/8
+					  , n = input.length/cols
+					  , target = new Array(input.length);
+
+					for(var mi = 0; mi < m; mi++) {
+						for(var ni = 0; ni < n; ni++) {
+							self._transpose8( input, ni*m*8+mi, m, n, target, mi*n*8+ni );
+						}
+					}
+
+					return target.join('');
+				}
+			,	_transpose8: function(self, A, Ai, m, n, B, Bi) { // from Hacker's Delight
+					var x = (A.charCodeAt(Ai+0*m) << 24) | (A.charCodeAt(Ai+1*m) << 16) | (A.charCodeAt(Ai+2*m)<<8) | (A.charCodeAt(Ai+3*m))
+					  , y = (A.charCodeAt(Ai+4*m) << 24) | (A.charCodeAt(Ai+5*m) << 16) | (A.charCodeAt(Ai+6*m)<<8) | (A.charCodeAt(Ai+7*m))
+					  , t = 0
+					  ;
+
+					t = (x ^ (x >> 7)) & 0x00AA00AA;  x = x ^ t ^ (t << 7);
+					t = (y ^ (y >> 7)) & 0x00AA00AA;  y = y ^ t ^ (t << 7);
+
+					t = (x ^ (x >>14)) & 0x0000CCCC;  x = x ^ t ^ (t <<14);
+					t = (y ^ (y >>14)) & 0x0000CCCC;  y = y ^ t ^ (t <<14);
+
+					t = (x & 0xF0F0F0F0) | ((y >> 4) & 0x0F0F0F0F);
+					y = ((x << 4) & 0xF0F0F0F0) | (y & 0x0F0F0F0F);
+					x = t;
+
+					B[Bi+0*n] = String.fromCharCode((x>>24)&0xFF); B[Bi+1*n] = String.fromCharCode((x>>16)&0xFF); B[Bi+2*n] = String.fromCharCode((x>>8)&0xFF); B[Bi+3*n] = String.fromCharCode((x>>0)&0xFF);
+					B[Bi+4*n] = String.fromCharCode((y>>24)&0xFF); B[Bi+5*n] = String.fromCharCode((y>>16)&0xFF); B[Bi+6*n] = String.fromCharCode((y>>8)&0xFF); B[Bi+7*n] = String.fromCharCode((y>>0)&0xFF);
+				}
+			}
+		)
+
+
 		, new Class(Component,
 			{	name: 'Panel'
 			,	description: 'Show data in a panel.'
