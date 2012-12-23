@@ -5,7 +5,6 @@
  ☐ add defaults for options
  ☐ write to file component?
  ☐ make popup windows prettier
- ☐ test on ipad
  ☐ look into ristretto-js
  ☐ move more heavy lifting into workers
  ☐ arbitrary JS eval component
@@ -14,8 +13,12 @@
  ☐ custom defined file types
  ☐ sort components
  ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
+ ☐ BUG: disconnecting leaves endpoint sometimes and things go crazy
+ ☐ file component with dropdown list of files
+ ☐ slider option type
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ test on ipad - filesystem api requires Chrome on desktop @done (12-12-23 15:15)
  ✔ BUG: options panels cant be toggled after removing component @done (12-12-23 13:52)
  ✔ Add bit stat counter @done (12-12-22 23:44)
  ✔ use eval hax to make Class names show up in console @done (12-12-22 17:49)

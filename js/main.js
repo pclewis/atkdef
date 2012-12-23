@@ -355,6 +355,14 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
+		, new Class(ConvertToBaseComponent,
+			{	name: 'bitstream'
+			,	description: 'Show binary representation of data with no separators'
+			,	base: 2
+			,	spacers: {}
+			}
+		)
+
 		, new Class(SimpleComponent,
 			{	name: 'sort'
 			,	description: 'Sort lines'
@@ -450,6 +458,42 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 					B[Bi+0*n] = String.fromCharCode((x>>24)&0xFF); B[Bi+1*n] = String.fromCharCode((x>>16)&0xFF); B[Bi+2*n] = String.fromCharCode((x>>8)&0xFF); B[Bi+3*n] = String.fromCharCode((x>>0)&0xFF);
 					B[Bi+4*n] = String.fromCharCode((y>>24)&0xFF); B[Bi+5*n] = String.fromCharCode((y>>16)&0xFF); B[Bi+6*n] = String.fromCharCode((y>>8)&0xFF); B[Bi+7*n] = String.fromCharCode((y>>0)&0xFF);
+				}
+			}
+		)
+
+		, new Class(SimpleComponent,
+			{	name: 'Repeat Finder'
+			,	description: 'Find repeated pattern'
+			,	options: {fuzz: 'text'}
+			,	out: function(self, input) {
+					var fuzz    = self.readOption('fuzz') || 30
+					  , pattern = '^.{0,'+fuzz+'}?((.+?)\\2+).{0,'+fuzz+'}?$'
+					  , result  = (new RegExp(pattern)).exec(input);
+					if(!result) return "No pattern found.";
+					else return "Pattern of length " + result[2].length + " repeated " + (result[1].length / result[2].length) + " times starting at index " + input.indexOf(result[2]) + ":\n\n" + result[2];
+				}
+			}
+		)
+
+		, new Class(SimpleComponent,
+			{	name: 'Divide'
+			,	description: 'divide'
+			,	quotient: function(self, numerator, denominator) {
+					return parseInt(numerator, 10) / parseInt(denominator, 10);
+				}
+			}
+		)
+		
+		, new Class(SimpleComponent,
+			{	name: 'Block'
+			,	description: 'Extract single block'
+			,	options: {'blockSize': {}, 'block': {}}
+			,	block: function(self, input) {
+					var blockSize = parseInt( self.readOption('blockSize') || '0x1E00' )
+					  , block = parseInt( self.readOption('block') || '0', 10)
+					  ;
+					return input.substr(block*blockSize, blockSize);
 				}
 			}
 		)
