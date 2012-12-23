@@ -1,4 +1,3 @@
- ☐ Add bit stat counter
  ☐ Add repeat finder
  ☐ Make checkboxes prettier
  ☐ Add actual icon or something for pinning
@@ -17,6 +16,7 @@
  ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ Add bit stat counter @done (12-12-22 23:44)
  ✔ use eval hax to make Class names show up in console @done (12-12-22 17:49)
  ✔ maybe allow multiple connections from outputs...tee components take a lot of space @done (12-12-22 14:35)
  ✔ delete component @done (12-12-22 14:12)

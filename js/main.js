@@ -385,6 +385,35 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			}
 		)
 
+		, new Class(SimpleComponent,
+			{	name: 'Bit Frequency'
+			,	description: 'Return count of how often each bit is set or unset'
+			,	options: {'bits': 'text'}
+			,	out: function(self, input) {
+					var bits = parseInt(self.readOption('bits') || '8', 10)
+					  , bytes = bits/8
+					  , counts = [];
+
+					if(bits < 8) return "minimum 8 bits";
+					if((bits % 8) !== 0) return "must be divisible by 8";
+
+					for(var i = 0; i < input.length; ++i) {
+						var c = input.charCodeAt(i);
+						for(var bit = 0; bit < 8; ++bit) {
+							var mask = 1 << bit
+							  , ci = (i % bytes)*8 + (7-bit)
+							  , countObj = counts[ci] || {0:0, 1:0};
+							if(c & mask) countObj[1]++;
+							else countObj[0]++;
+							counts[ci] = countObj;
+						}
+					}
+
+					return _(counts).map(function(c,i){   return "bit " + i + ":\t" + c[0] + "\t" + c[1]   }).join("\n");
+				}
+			}
+		)
+
 		, new Class(Component,
 			{	name: 'Panel'
 			,	description: 'Show data in a panel.'
