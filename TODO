@@ -14,9 +14,9 @@
  ☐ custom defined file types
  ☐ sort components
  ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
- ☐ BUG: options panels cant be toggled after removing component
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ BUG: options panels cant be toggled after removing component @done (12-12-23 13:52)
  ✔ Add bit stat counter @done (12-12-22 23:44)
  ✔ use eval hax to make Class names show up in console @done (12-12-22 17:49)
  ✔ maybe allow multiple connections from outputs...tee components take a lot of space @done (12-12-22 14:35)

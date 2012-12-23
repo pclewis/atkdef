@@ -600,8 +600,10 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 
 			jsPlumb.draggable( $(element), { stop: function(event, ui) {
 				if(ui.position.top < 0 || ui.position.left < 0) {
-					jsPlumb.select( {source: $(element).find('li')} ).detach();
-					jsPlumb.select( {target: $(element).find('li')} ).detach();
+					jsPlumb.selectEndpoints( {element: $(element).find('li')} ).delete();
+					// HACK for http://code.google.com/p/jsplumb/issues/detail?id=302
+					var ep = jsPlumb.getTestHarness().endpointsByElement;
+					for(var k in ep) { if (ep.hasOwnProperty(k) && ep[k].length === 0) delete ep[k]; }
 					bindingContext.$root.components.remove(component);
 					component.destroy();
 				}
