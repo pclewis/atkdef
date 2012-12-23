@@ -229,7 +229,8 @@ define(function(require) {
 							_.each( component.connections, function(conn, name) {
 								function connect(conn) {
 									var type = conn.type || 'input';
-									ci.connect( name, $('#' + conn.target).data('component'), conn.pin, type );
+									// this will be handled via the jsPlumb hooks
+									// ci.connect( name, $('#' + conn.target).data('component'), conn.pin, type );
 									jsPlumb.connect(
 									{	source: $('#' + component.id + '_output_' + name)
 									,	target: $('#' + conn.target + '_' + type + '_' + conn.pin)

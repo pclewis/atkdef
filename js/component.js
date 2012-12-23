@@ -53,18 +53,21 @@ define(function(require) {
 				usedIds = _(usedIds).without([self.id]);
 			}
 
+		,	removeConnections: function(self, outputName, target, pinName, pinType) {
+				self.connections[outputName] = _(self.connections[outputName]).reject( function(conn) {
+					return conn.target === target && conn.pin === pinName && conn.type === pinType;
+				});
+			}
 		,	connect: function(self, outputName, target, pinName, pinType) {
 				var targetObj = (pinType === 'input') ? target.inpins : target.options;
+				self.removeConnections(outputName, target, pinName, pinType);
 				self.connections[outputName].push( {target: target, pin: pinName, type: pinType} );
 				targetObj[pinName]( self.outpins[outputName] );
 				if(self.onConnection) self.onConnection(outputName, target, pinName, pinType);
 			}
 
 		,	disconnect: function(self, outputName, target, pinName, pinType) {
-				self.connections[outputName] = _(self.connections[outputName]).reject( function(conn) {
-					return conn.target === target && conn.pin === pinName && conn.type === pinType;
-				});
-
+				self.removeConnections(outputName, target, pinName, pinType);
 				if(pinType === 'input')
 					target.inpins[pinName]( nullo );
 				else if(pinType === 'option')
