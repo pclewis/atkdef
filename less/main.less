@@ -4,6 +4,9 @@
 @mainHeight: 680px;
 @normalFont: Lucida Sans Unicode, sans-serif;
 @fixedFont: Lucida Console, Consolas, monospace;
+@componentWidth: 50px;
+@componentHeight: 50px;
+@optionPanelWidth: 200px;
 
 .noSelect() {
   -webkit-user-select: none;  /* Chrome all / Safari all */
@@ -172,8 +175,8 @@ div {
 	position: absolute;
 	z-index: 100;
 	opacity: 0.9;
-	width: 50px;
-	height: 50px;
+	width: @componentWidth;
+	height: @componentHeight;
 	font-size: 80%;
 	border: 1px solid @complement-border;
 	background-color: @complement-active-bg;
@@ -236,15 +239,15 @@ div.options > input {
 	display: none;
 	& ~ ul {
 		visibility: hidden;
-		display: inline-block;
 		list-style-type: none;
 		position: absolute;
-		right: 50%;
+		left: @componentWidth/2 - @optionPanelWidth/2;
 		top: 100%;
 		text-align: center;
 		margin: 0;
 		padding: 0;
 		pointer-events: none;
+		width: @optionPanelWidth;
 
 		li {
 			height: 1px;
@@ -253,15 +256,19 @@ div.options > input {
 			border-radius: 3px;
 			background-color: @secondary-a-active-bg;
 			color: @secondary-a-active-fg;
-			display: inline-block;
+			width: 100%;
 			margin-left: 0;
 			margin-right: -100%;
+			text-align: left;
 
-			label span {
-				width: 100px;
-				text-align: right;
-				margin-right: 10px;
-				&:after { content: ": " }
+			label {
+				span.label {
+					width: 50px;
+					text-align: right;
+					margin-right: 10px;
+					display: inline-block;
+					&:after { content: ": " }
+				}
 			}
 
 			input {
@@ -275,10 +282,6 @@ div.options > input {
 	}
 	&:checked ~ ul {
 		visibility: visible;
-		display: inline-block;
-		position: absolute;
-		right: 50%;
-		top: 100%;
 		li {
 			pointer-events: auto;
 			height: auto;

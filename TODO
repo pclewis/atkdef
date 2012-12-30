@@ -1,8 +1,6 @@
- ☐ Add repeat finder
  ☐ Make checkboxes prettier
  ☐ Add actual icon or something for pinning
  ☐ memoize component?
- ☐ add defaults for options
  ☐ write to file component?
  ☐ make popup windows prettier
  ☐ look into ristretto-js
@@ -14,10 +12,15 @@
  ☐ sort components
  ☐ BUG: connections dont show up right if design panel isnt visible when they're created..moving each object fixes, maybe just need repaint when showing tab
  ☐ BUG: disconnecting leaves endpoint sometimes and things go crazy
- ☐ file component with dropdown list of files
- ☐ slider option type
+ ☐ Use typed arrays
+ ☐ Unit tests (qunit?)
+ ☐ Benchmarks? (benchmark.js?)
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ add defaults for options @done (12-12-30 00:35)
+ ✔ file component with dropdown list of files @done (12-12-30 00:36)
+ ✔ slider option type @done (12-12-30 00:36)
+ ✔ Add repeat finder @done (12-12-23 15:16)
  ✔ test on ipad - filesystem api requires Chrome on desktop @done (12-12-23 15:15)
  ✔ BUG: options panels cant be toggled after removing component @done (12-12-23 13:52)
  ✔ Add bit stat counter @done (12-12-22 23:44)

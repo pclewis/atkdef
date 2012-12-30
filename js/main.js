@@ -484,14 +484,17 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			}
 		)
-		
+
 		, new Class(SimpleComponent,
 			{	name: 'Block'
 			,	description: 'Extract single block'
-			,	options: {'blockSize': {}, 'block': {}}
+			,	options:
+				{	'blockSize': {type: 'text', default: '0x1E00'}
+				,	'block':     {type: 'number', default: 0}
+				}
 			,	block: function(self, input) {
-					var blockSize = parseInt( self.readOption('blockSize') || '0x1E00' )
-					  , block = parseInt( self.readOption('block') || '0', 10)
+					var blockSize = parseInt( self.readOption('blockSize') )
+					  , block = parseInt( self.readOption('block'), 10 )
 					  ;
 					return input.substr(block*blockSize, blockSize);
 				}
@@ -513,7 +516,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 						self.updatePanel( obs() );
 					});
 
-					self.options.name.subscribe(function(value) {
+					self.options.name.value.subscribe(function(value) {
 						self.panel.name( ko.utils.unwrapObservable(value) );
 					});
 				}
@@ -547,6 +550,8 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 				}
 			}
 		)
+
+		, require('atk/components/fileComponent')
 
 	];
 
@@ -708,20 +713,37 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		return v;
 	}
 
-	ko.bindingHandlers.componentOption = {
+	// this is kind of ridiculous and probably only has one real use case.. should maybe just have something like unwindValue and unwindChecked
+	ko.bindingHandlers.unwind = {
 		init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var type = valueAccessor().type
-			  , chain = (type === 'checkbox') ? 'checked' : 'value'
-			  ;
-			element.type = type;
+			_(valueAccessor()).each(function(v, chain) {
+				var obs
+				  , obsA = function() { return obs } // have to wrap the observable in an valueAccessor-like function
+				  ;
 
-			return ko.bindingHandlers[chain].init.call(this, element, _.partial(unwindObservable, valueAccessor), allBindingsAccessor, viewModel, bindingContext);
-		},
+				if (chain.indexOf('_if_writeable') > -1) {
+					chain = chain.substr(0, chain.indexOf('_if_writeable'));
+					obs = ko.computed( function() {
+						return ko.isWriteableObservable( unwindObservable(v) );
+					});
+				} else {
+					obs = ko.computed(
+						{	read: function(){ return unwindObservable(v)(); }
+						,	write: function(nv) { unwindObservable(v)(nv); }
+						}
+					);
+				}
 
-		update: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
-			var chain = (element.type === 'checkbox') ? 'checked' : 'value'
-			  ;
-			return ko.bindingHandlers[chain].update.call(this, element, _.partial(unwindObservable, valueAccessor), allBindingsAccessor, viewModel, bindingContext);
+				// we won't ever get updated since we're handed a static map, so manage delegated updates manually
+				obs.subscribe(function(){
+					if(ko.bindingHandlers[chain].update)
+						return ko.bindingHandlers[chain].update.call(this, element, obsA, allBindingsAccessor, viewModel, bindingContext);
+				});
+
+				if(ko.bindingHandlers[chain].init)
+					return ko.bindingHandlers[chain].init.call(this, element, obsA, allBindingsAccessor, viewModel, bindingContext);
+				return undefined;
+			});
 		}
 	};
 

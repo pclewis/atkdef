@@ -31,10 +31,9 @@ define(function(require) {
 				});
 
 				self.options = _.objMap(self.options, function(v){
-					// hacky...
-					var obs = ko.observable();
-					obs.type = v;
-					return obs;
+					var obj = (typeof v === 'string') ? {type: v} : _.clone(v);
+					obj.value = ko.observable(obj.default);
+					return obj;
 				});
 
 				if(self.setup) {
@@ -59,10 +58,10 @@ define(function(require) {
 				});
 			}
 		,	connect: function(self, outputName, target, pinName, pinType) {
-				var targetObj = (pinType === 'input') ? target.inpins : target.options;
+				var targetObj = (pinType === 'input') ? target.inpins[pinName] : target.options[pinName].value;
 				self.removeConnections(outputName, target, pinName, pinType);
 				self.connections[outputName].push( {target: target, pin: pinName, type: pinType} );
-				targetObj[pinName]( self.outpins[outputName] );
+				targetObj( self.outpins[outputName] );
 				if(self.onConnection) self.onConnection(outputName, target, pinName, pinType);
 			}
 
@@ -71,7 +70,7 @@ define(function(require) {
 				if(pinType === 'input')
 					target.inpins[pinName]( nullo );
 				else if(pinType === 'option')
-					target.options[pinName]( undefined );
+					target.options[pinName].value( undefined );
 			}
 
 		,	readInput: function(self, name, noThrow) {
@@ -81,14 +80,14 @@ define(function(require) {
 			}
 
 		,	readOption: function(self, name) {
-				var result = self.options[name]();
+				var result = self.options[name].value();
 				if(ko.isObservable(result)) result = result();
 				return result;
 			}
 
 		,	_callOutputFn: function(self, fn) {
 				try {
-					return fn.apply(self);
+					return fn.apply(self, [self]);
 				} catch(err) {
 					if(err === self.MissingInput) return undefined;
 					throw err;

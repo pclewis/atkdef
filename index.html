@@ -119,9 +119,39 @@
 
 		<script type="text/html" id="component-option-template">
 			<label>
-				<span data-bind="text: $data"></span>
-				<input data-bind="componentOption: $parent.options[$data]"/>
+				<span class="label" data-bind="text: $data"></span>
+				<!-- ko template: {name: optionTemplateName, data: $parent.options[$data]} --><!-- /ko -->
 			</label>
+		</script>
+
+		<script type="text/html" id="option-template-text">
+			<input type="text" data-bind="unwind: {value: value, enable_if_writeable: value}" />
+		</script>
+
+		<script type="text/html" id="option-template-checkbox">
+			<input type="checkbox" data-bind="unwind: {checked: value, enable_if_writeable: value}" />
+		</script>
+
+		<script type="text/html" id="option-template-number">
+			<input type="number" data-bind="unwind: {value: value, enable_if_writeable: value}, attr: _.pick($data, ['min','max','step'])" />
+		</script>
+
+		<script type="text/html" id="option-template-file">
+			<select data-bind="foreach: $root.files, unwind: {value: value, enable_if_writeable: value}">
+				<option data-bind="value: $data, text: name"></option>
+			</select>
+		</script>
+
+		<script>
+			function optionTemplateName(data) {
+				return 'option-template-' + data.type;
+			}
+
+			function unwindObservable(v) {
+				var ko = require('knockout');
+				while (ko.isObservable(v())) { v = v() }
+				return v;
+			}
 		</script>
 	</body>
 </html>

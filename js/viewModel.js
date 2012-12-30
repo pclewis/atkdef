@@ -1,11 +1,12 @@
 define(function(require) {
-	var _     = require('underscore')
-	  , ko    = require('knockout')
-	  , Class = require('atk/class')
-	  , log   = require('atk/log')
-	  , File  = require('atk/file')
+	var _             = require('underscore')
+	  , ko            = require('knockout')
+	  , Class         = require('atk/class')
+	  , log           = require('atk/log')
+	  , File          = require('atk/file')
+	  , FileType      = require('atk/fileType')
 	  , FileComponent = require('atk/components/fileComponent')
-	  , jsPlumb = require('jsPlumb') /* FIXME */
+	  , jsPlumb       = require('jsPlumb') /* FIXME */
 	  , DESIGN_STORAGE_PREFIX = "atk.designs."
 	  ;
 
@@ -136,7 +137,12 @@ define(function(require) {
 			}
 
 		,	addFileComponent: function(self, file) {
-				self.components.push( new FileComponent(file, self.alternateFile(file)) );
+				var component = new FileComponent(_(self.alternateFile).bind(self));
+				self.components.push( component );
+				_.defer(function() {
+					if(file.fileType() === FileType.PLAINTEXT) component.options['plainText'].value(file);
+					else if(file.fileType() === FileType.CIPHERTEXT) component.options['cipherText'].value(file);
+				});
 			}
 
 		/**
@@ -193,12 +199,17 @@ define(function(require) {
 		,	serializeConnections: function(self, connections) {
 				return _(connections).map( _(self.serializeConnection).bind(self) );
 			}
+		,	serializeOption: function(self, option) {
+				var value = option.value();
+				if(value instanceof File) return { type: 'File', name: value.name() };
+				else return { type: 'raw', value: value };
+			}
 		,	serializeComponent: function(self, component) {
 				return {	id: component.id
 					   ,	name: component.name
 					   ,	pos: $(component.element).position()
 					   ,	connections: _.objMap(component.connections, _(self.serializeConnections).bind(self))
-					   ,	options: _.objMap(component.options, function(v) { return v(); })
+					   ,	options: _.objMap(component.options, _(self.serializeOption).bind(self))
 					   };
 			}
 
@@ -207,15 +218,22 @@ define(function(require) {
 
 				_.each( obj.components, function(component) {
 					var cc = _.find(window.components, function(c){   return (c.prototype.name === component.name)   }), ci;
-					if(cc === undefined) {
+					if(cc === undefined) { // LEGACY file component support
 						var f = _.find(self.files(), function(c){   return (c.baseName() === component.name || c.name() === component.name)   });
 						if(f === undefined) {
 							throw "Can't load: missing component: " + component.name;
 						}
-						var alt = self.alternateFile(f);
-						ci = new FileComponent(f, alt);
+						var alt = self.alternateFile(f), altName = alt ? alt.name() : undefined;
+						ci = new FileComponent( _(self.alternateFile).bind(self) );
+						component.options.plainText  = {type: 'File', name: (f.type === FileType.PLAINTEXT)  ? f.name() : altName};
+						component.options.cipherText = {type: 'File', name: (f.type === FileType.CIPHERTEXT) ? f.name() : altName};
+						component.connections.plainText = component.connections.PlainText;
+						component.connections.cipherText = component.connections.CipherText;
+						delete component.connections.PlainText;
+						delete component.connections.CipherText;
 					} else {
-						ci = new cc();
+						// FIXME HACK passing arg for FileComponents...make this better
+						ci = new cc(_(self.alternateFile).bind(self));
 					}
 					ci.id = component.id;
 					self.components.push( ci );
@@ -223,7 +241,17 @@ define(function(require) {
 					_.defer(function(){
 						$('#' + component.id).css(component.pos);
 						_.each(component.options, function(v, k) {
-							ci.options[k](v);
+							var value;
+							if(typeof v === 'object' && v.type) {
+								if(v.type === 'File') {
+									value = _(self.files()).find(function(file){   return file.name() === v.name   });
+								} else if (v.type === 'raw') {
+									value = v.value;
+								}
+							} else {
+								value = v; // LEGACY option values
+							}
+							ci.options[k].value(value);
 						});
 						_.defer( function() { // double-defer so everything will be in position before we connect
 							_.each( component.connections, function(conn, name) {
