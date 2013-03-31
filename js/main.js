@@ -465,13 +465,54 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 		, new Class(SimpleComponent,
 			{	name: 'Repeat Finder'
 			,	description: 'Find repeated pattern'
-			,	options: {fuzz: 'text'}
+			,	options:
+				{	fuzz: {type: 'number', default: 30}
+				,	minRepeats: {type: 'number', default: 1}
+				,	minLength: {type: 'number', default: 1}
+				,	maxDistance: { type: 'number', default: 0}
+				,	bounded: {type: 'checkbox', default: true}
+				}
 			,	out: function(self, input) {
-					var fuzz    = self.readOption('fuzz') || 30
-					  , pattern = '^.{0,'+fuzz+'}?((.+?)\\2+).{0,'+fuzz+'}?$'
+					var fuzz    = self.readOption('fuzz')
+					  , mr      = self.readOption('minRepeats')
+					  , ml      = self.readOption('minLength')
+					  , md      = self.readOption('maxDistance')
+					  , bounded = self.readOption('bounded')
+					  , pattern = (bounded ? '^' : '') + '.{0,'+fuzz+'}?((.{' + ml + ',}?)(.{0,' + md + '}\\2){' + mr + ',}).{0,'+fuzz+'}?' + (bounded ? '$' : '')
 					  , result  = (new RegExp(pattern)).exec(input);
 					if(!result) return "No pattern found.";
 					else return "Pattern of length " + result[2].length + " repeated " + (result[1].length / result[2].length) + " times starting at index " + input.indexOf(result[2]) + ":\n\n" + result[2];
+				}
+			}
+		)
+
+		, new Class(SimpleComponent,
+			{	name: 'selfxor'
+			,	description: "Output a sequence XOR'd with itself"
+			,	options:
+				{	sections: { type: 'number', default: 3}
+				,	firstOnly: { type: 'checkbox', default: false, description: "XOR each block against first."}
+				}
+			,	_xorStrings: function(self, x, y) {
+					var out = '';
+					for(var i = 0; i < x.length; ++i) {
+						out += String.fromCharCode( x.charCodeAt(i) ^ y.charCodeAt(i) );
+					}
+					return out;
+				}
+			,	out: function(self, input) {
+					var sections = self.readOption('sections')
+					  , firstOnly = self.readOption('firstOnly')
+					  , blockSize = input.length / sections
+					  , prevBlock = input.substr(0, blockSize)
+					  , out = ''
+					  ;
+					for(var i = blockSize; i < input.length; i += blockSize) {
+						var curBlock = input.substr( i, blockSize );
+						out += self._xorStrings( prevBlock, curBlock );
+						if (!firstOnly) prevBlock = curBlock;
+					}
+					return out;
 				}
 			}
 		)
@@ -497,6 +538,49 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 					  , block = parseInt( self.readOption('block'), 10 )
 					  ;
 					return input.substr(block*blockSize, blockSize);
+				}
+			}
+		)
+
+		, new Class(SimpleComponent,
+			{	name: 'Bit Deinterleave'
+			,	description: 'Split even and odd bytes into separate streams'
+			,	_evenBits: function(self, x) {
+					x >>>= 0; // force uint32
+					x = x & 0x55555555;
+					x = (x | (x >> 1)) & 0x33333333;
+					x = (x | (x >> 2)) & 0x0F0F0F0F;
+					x = (x | (x >> 4)) & 0x00FF00FF;
+					x = (x | (x >> 8)) & 0x0000FFFF;
+					return x;
+				}
+			,	_bits: function(self, input, odd) {
+					var out = '';
+					if ((input.length % 2) === 1) log.warn("Bit Deinterleave: length is odd");
+					for(var i = 0; i < input.length; i += 2) {
+						// FIXME what happens when input.length is odd?
+						var x = (input.charCodeAt(i) << 8) | input.charCodeAt(i+1);
+						out += String.fromCharCode(self._evenBits(x >> odd));
+					}
+					return out;
+				}
+			,	even: function(self, input) {  return self._bits(input, 0)  }
+			,	odd:  function(self, input) {  return self._bits(input, 1)  }
+			}
+		)
+
+		, new Class(SimpleComponent,
+			{	name: 'Bit Reverse'
+			,	description: 'Reverse the bits in each byte.'
+			,	_reverseByte: function(self, b) {
+					return (((b * 0x0802 & 0x22110) | (b * 0x8020 & 0x88440)) * 0x10101 >> 16) & 0xFF;
+				}
+			,	reversed: function(self, input) {
+					var out = '';
+					for(var i = 0; i < input.length; ++i) {
+						out += String.fromCharCode( self._reverseByte(input.charCodeAt(i)) );
+					}
+					return out;
 				}
 			}
 		)
@@ -533,6 +617,7 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 			{	name: 'Window'
 			,	description: 'Show data in a window.'
 			,	inputs: {'in': {}}
+			,	options: {'title': 'text'}
 			,	setup: function(self) {
 					self.window = window.open('', '_blank', 'location=no,menubar=no,status=no,titlebar=no,toolbar=no' );
 					self.window.document.write("<pre></pre>");
@@ -540,6 +625,9 @@ define( "main", function(require) { /*['jquery', 'underscore', 'knockout', 'jsPl
 						if(self.subscription) self.subscription.dispose();
 						self.subscription = obs.subscribe(_.bind(self.updatePanel,self));
 						self.updatePanel( obs() );
+					});
+					self.options.title.value.subscribe(function(value) {
+						self.window.document.title = ko.utils.unwrapObservable(value);
 					});
 				}
 			,	updatePanel: function(self, data) {

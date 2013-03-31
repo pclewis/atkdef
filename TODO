@@ -15,6 +15,15 @@
  ☐ Use typed arrays
  ☐ Unit tests (qunit?)
  ☐ Benchmarks? (benchmark.js?)
+ ☐ BUG: option panel can come up behind other components
+ ☐ flipping components horizontally could be useful but maybe confusing
+ ☐ save window sizes
+ ☐ save pinned options
+ ☐ BUG: added components are offscreen if you're scrolled
+ ☐ BUG: dump to text doesnt work for long designs (browser inserts ... in middle)
+ ☐ autosave
+ ☐ BUG: multiple connections to some inputs on save/load
+ ☐ figure out some way to clean up orphaned popups
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
  ✔ add defaults for options @done (12-12-30 00:35)
